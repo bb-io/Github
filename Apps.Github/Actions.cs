@@ -26,7 +26,7 @@ namespace Apps.Github
         }
 
         [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public IEnumerable<IssueDto> GetIssuesInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
+        public GetIssuesResponse GetIssuesInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
             [ActionParameter] RepositoryRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
@@ -42,11 +42,14 @@ namespace Apps.Github
                     Url = issue.HtmlUrl,
                 });
             }
-            return response;
+            return new GetIssuesResponse()
+            {
+                Issues = response
+            };
         }
 
         [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
-        public IEnumerable<PullRequestDto> GetPullRequestsInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public GetPullRequestsResponse GetPullRequestsInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider,
             [ActionParameter] RepositoryRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
@@ -62,11 +65,14 @@ namespace Apps.Github
                     Url = pullRequest.HtmlUrl,
                 });
             }
-            return response;
+            return new GetPullRequestsResponse()
+            {
+                PullRequests = response
+            };
         }
 
         [Action("List repository content", Description = "List repository content by specified path")]
-        public IEnumerable<string> ListRepositoryContent(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public RepositoryContentResponse ListRepositoryContent(AuthenticationCredentialsProvider authenticationCredentialsProvider,
             [ActionParameter] RepositoryContentRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
@@ -76,7 +82,10 @@ namespace Apps.Github
             {
                 response.Add(item.Name);
             }
-            return response;
+            return new RepositoryContentResponse()
+            {
+                Content = response
+            };
         }
 
         private GitHubClient GetGitHubClient(string apiToken)
