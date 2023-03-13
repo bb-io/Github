@@ -26,7 +26,7 @@ namespace Apps.Github
         }
 
         [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public List<IssueDto> GetIssuesInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
+        public IEnumerable<IssueDto> GetIssuesInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
             [ActionParameter] RepositoryRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
@@ -46,7 +46,7 @@ namespace Apps.Github
         }
 
         [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
-        public List<PullRequestDto> GetPullRequestsInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public IEnumerable<PullRequestDto> GetPullRequestsInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider,
             [ActionParameter] RepositoryRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
@@ -66,7 +66,7 @@ namespace Apps.Github
         }
 
         [Action("List repository content", Description = "List repository content by specified path")]
-        public List<string> ListRepositoryContent(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public IEnumerable<string> ListRepositoryContent(AuthenticationCredentialsProvider authenticationCredentialsProvider,
             [ActionParameter] RepositoryContentRequest input)
         {
             var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
