@@ -5,6 +5,7 @@ using Apps.Github.Models.Responses;
 using Octokit;
 using Apps.Github.Dtos;
 using RepositoryRequest = Apps.Github.Models.Requests.RepositoryRequest;
+using Blackbird.Applications.Sdk.Common.Actions;
 
 namespace Apps.Github
 {
@@ -12,10 +13,10 @@ namespace Apps.Github
     public class Actions
     {
         [Action("Get user data", Description = "Get information about specific user")]
-        public UserDataResponse GetUserData(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
+        public UserDataResponse GetUserData(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
             [ActionParameter] UserDataRequest input)
         {
-            var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var user = githubClient.User.Get(input.UserLogin).Result;
             return new UserDataResponse()
             {
@@ -26,10 +27,10 @@ namespace Apps.Github
         }
 
         [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public GetIssuesResponse GetIssuesInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider, 
+        public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
             [ActionParameter] RepositoryRequest input)
         {
-            var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var issues = githubClient.Issue.GetAllForRepository(input.RepositoryOwnerLogin, input.RepositoryName).Result;
             var response = new List<IssueDto>();
             foreach (var issue in issues)
@@ -49,10 +50,10 @@ namespace Apps.Github
         }
 
         [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
-        public GetPullRequestsResponse GetPullRequestsInRepository(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public GetPullRequestsResponse GetPullRequestsInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] RepositoryRequest input)
         {
-            var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var pullRequests = githubClient.PullRequest.GetAllForRepository(input.RepositoryOwnerLogin, input.RepositoryName).Result;
             var response = new List<PullRequestDto>();
             foreach (var pullRequest in pullRequests)
@@ -72,10 +73,10 @@ namespace Apps.Github
         }
 
         [Action("List repository content", Description = "List repository content by specified path")]
-        public RepositoryContentResponse ListRepositoryContent(AuthenticationCredentialsProvider authenticationCredentialsProvider,
+        public RepositoryContentResponse ListRepositoryContent(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] RepositoryContentRequest input)
         {
-            var githubClient = GetGitHubClient(authenticationCredentialsProvider.Value);
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var content = githubClient.Repository.Content.GetAllContents(input.RepositoryOwnerLogin, input.RepositoryName, input.Path).Result;
             var response = new List<string>();
             foreach (var item in content)
@@ -86,14 +87,6 @@ namespace Apps.Github
             {
                 Content = response
             };
-        }
-
-        private GitHubClient GetGitHubClient(string apiToken)
-        {
-            var client = new GitHubClient(new ProductHeaderValue("Blackbird"));
-            var tokenAuth = new Credentials(apiToken);
-            client.Credentials = tokenAuth;
-            return client;
         }
     }
 }
