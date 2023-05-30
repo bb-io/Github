@@ -7,27 +7,26 @@ using Apps.Github.Dtos;
 using RepositoryRequest = Apps.Github.Models.Requests.RepositoryRequest;
 using Blackbird.Applications.Sdk.Common.Actions;
 
-namespace Apps.Github
+namespace Apps.Github.Actions
 {
     [ActionList]
-    public class Actions
+    public class RepositoryActions
     {
-        [Action("Get user data", Description = "Get information about specific user")]
-        public UserDataResponse GetUserData(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
-            [ActionParameter] UserDataRequest input)
+        [Action("Get repository file", Description = "Get repository file by path")]
+        public GetFileResponse GetFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] GetFileRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var user = githubClient.User.Get(input.UserLogin).Result;
-            return new UserDataResponse()
+            var fileData = githubClient.Repository.Content.GetRawContent(input.RepositoryOwnerLogin, input.RepositoryName, input.FilePath).Result;
+            return new GetFileResponse()
             {
-                Name = user.Name,
-                UserUrl = user.Url,
-                PublicRepositoriesNumber = user.PublicRepos
+                FileName = Path.GetFileName(input.FilePath),
+                File = fileData
             };
         }
 
         [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+        public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] RepositoryRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);

@@ -20,7 +20,17 @@ namespace Apps.Github.Connections
                 ConnectionUsage = ConnectionUsage.Actions,
                 ConnectionProperties = new List<ConnectionProperty>()
                 {
-                    new ConnectionProperty("apiToken")
+                    new ConnectionProperty("apiToken"),
+                }
+            },
+            new ConnectionPropertyGroup
+            {
+                Name = "Webhook data",
+                AuthenticationType = ConnectionAuthenticationType.Undefined,
+                ConnectionUsage = ConnectionUsage.Webhooks,
+                ConnectionProperties = new List<ConnectionProperty>()
+                {
+                    new ConnectionProperty("webhooksRepositoryId"),
                 }
             }
         };

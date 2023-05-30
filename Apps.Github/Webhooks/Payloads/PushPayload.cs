@@ -39,8 +39,8 @@ namespace Apps.Github.Webhooks.Payloads
         public Author Author { get; set; }
         public Committer Committer { get; set; }
         public List<string> Added { get; set; }
-        public List<object> Removed { get; set; }
-        public List<object> Modified { get; set; }
+        public List<string> Removed { get; set; }
+        public List<string> Modified { get; set; }
     }
 
     public class Committer
@@ -80,7 +80,7 @@ namespace Apps.Github.Webhooks.Payloads
         public bool Private { get; set; }
         public Owner Owner { get; set; }
         public string HtmlUrl { get; set; }
-        public object Description { get; set; }
+        public string Description { get; set; }
         public bool Fork { get; set; }
         public string Url { get; set; }
         public int CreatedAt { get; set; }

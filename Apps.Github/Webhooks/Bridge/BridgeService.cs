@@ -12,12 +12,6 @@ namespace Apps.Github.Webhooks.Bridge
     {
         public BridgeService(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders) 
         {
-            //var client = new RestClient();
-            //var detailsRequest = new RestRequest("/account-info/v3/details", Method.Get, authenticationCredentialsProviders);
-            //var details = client.Get<Details>(detailsRequest);
-
-            //if (details == null) throw new Exception("Could not fetch account details");
-            //PortalId = details.PortalId;
 
         }
         public void Subscribe(string _event, string repositoryId, string url)
