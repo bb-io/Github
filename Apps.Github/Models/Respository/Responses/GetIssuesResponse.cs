@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Apps.Github.Models.Responses
+namespace Apps.Github.Models.Respository.Responses
 {
-    public class RepositoryContentResponse
+    public class GetIssuesResponse
     {
-        public IEnumerable<string> Content { get; set; }
+        public IEnumerable<IssueDto> Issues { get; set; }
     }
 }

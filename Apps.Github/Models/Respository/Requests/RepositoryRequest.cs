@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Apps.Github.Models.Requests
 {
-    public class UserDataRequest
+    public class RepositoryRequest
     {
-        public string UserLogin { get; set; }
+        public string RepositoryId { get; set; }
     }
 }

@@ -1,13 +1,9 @@
-﻿using Apps.Github.Models.Requests;
-using Apps.Github.Models.Responses;
+﻿using Apps.Github.Models.Respository.Responses;
+using Apps.Github.Models.User.Requests;
+using Apps.Github.Models.User.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.Github.Actions
 {

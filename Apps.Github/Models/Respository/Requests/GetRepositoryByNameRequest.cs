@@ -4,14 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Apps.Github.Models.Requests
+namespace Apps.Github.Models.Respository.Requests
 {
-    public class RepositoryContentRequest
+    public class GetRepositoryByNameRequest
     {
-        public string RepositoryOwnerLogin { get; set; }
-
+        public string RepositoryOwner { get; set; }
         public string RepositoryName { get; set; }
-
-        public string Path { get; set; }
     }
 }

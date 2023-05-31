@@ -1,11 +1,13 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Apps.Github.Models.Requests;
-using Apps.Github.Models.Responses;
 using Octokit;
 using Apps.Github.Dtos;
-using RepositoryRequest = Apps.Github.Models.Requests.RepositoryRequest;
 using Blackbird.Applications.Sdk.Common.Actions;
+using Apps.Github.Models.Respository.Responses;
+using Apps.Github.Models.Responses;
+using Apps.Github.Models.Requests;
+using Apps.Github.Webhooks.Payloads;
+using Apps.Github.Models.Respository.Requests;
 
 namespace Apps.Github.Actions
 {
@@ -17,7 +19,8 @@ namespace Apps.Github.Actions
             [ActionParameter] GetFileRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var fileData = githubClient.Repository.Content.GetRawContent(input.RepositoryOwnerLogin, input.RepositoryName, input.FilePath).Result;
+            var repoInfo = GetRepositoryById(authenticationCredentialsProviders, new GetRepositoryByIdRequest() { RepositoryId = input.RepositoryId });
+            var fileData = githubClient.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
             return new GetFileResponse()
             {
                 FileName = Path.GetFileName(input.FilePath),
@@ -25,49 +28,45 @@ namespace Apps.Github.Actions
             };
         }
 
-        [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] RepositoryRequest input)
+        [Action("Get repository by name", Description = "Get repository info by owner and name")]
+        public RepositoryDto GetRepositoryByName(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] GetRepositoryByNameRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var issues = githubClient.Issue.GetAllForRepository(input.RepositoryOwnerLogin, input.RepositoryName).Result;
-            var response = new List<IssueDto>();
-            foreach (var issue in issues)
-            {
-                response.Add(new IssueDto()
-                {
-                    Title = issue.Title,
-                    Body = issue.Body,
-                    UserLogin = issue.User.Login,
-                    Url = issue.HtmlUrl,
-                });
-            }
+            var repository = githubClient.Repository.Get(input.RepositoryOwner, input.RepositoryName).Result;
+            return new RepositoryDto(repository);
+        }
+
+        [Action("Get repository by id", Description = "Get repository info by id")]
+        public RepositoryDto GetRepositoryById(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] GetRepositoryByIdRequest input)
+        {
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
+            var repository = githubClient.Repository.Get(long.Parse(input.RepositoryId)).Result;
+            return new RepositoryDto(repository);
+        }
+
+        [Action("Get repository issues", Description = "Get opened issues against repository")]
+        public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] Models.Requests.RepositoryRequest input)
+        {
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
+            var issues = githubClient.Issue.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
             return new GetIssuesResponse()
             {
-                Issues = response
+                Issues = issues.Select(issue => new IssueDto(issue))
             };
         }
 
         [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
         public GetPullRequestsResponse GetPullRequestsInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] RepositoryRequest input)
+            [ActionParameter] Models.Requests.RepositoryRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var pullRequests = githubClient.PullRequest.GetAllForRepository(input.RepositoryOwnerLogin, input.RepositoryName).Result;
-            var response = new List<PullRequestDto>();
-            foreach (var pullRequest in pullRequests)
-            {
-                response.Add(new PullRequestDto()
-                {
-                    Title = pullRequest.Title,
-                    Body = pullRequest.Body,
-                    UserLogin = pullRequest.User.Login,
-                    Url = pullRequest.HtmlUrl,
-                });
-            }
+            var pullRequests = githubClient.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
             return new GetPullRequestsResponse()
             {
-                PullRequests = response
+                PullRequests = pullRequests.Select(p => new PullRequestDto(p))
             };
         }
 
@@ -76,15 +75,10 @@ namespace Apps.Github.Actions
             [ActionParameter] RepositoryContentRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var content = githubClient.Repository.Content.GetAllContents(input.RepositoryOwnerLogin, input.RepositoryName, input.Path).Result;
-            var response = new List<string>();
-            foreach (var item in content)
-            {
-                response.Add(item.Name);
-            }
+            var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path).Result;
             return new RepositoryContentResponse()
             {
-                Content = response
+                Content = content
             };
         }
     }

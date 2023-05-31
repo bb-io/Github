@@ -1,4 +1,5 @@
 ﻿using Apps.Github.Dtos;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace Apps.Github.Models.Responses
 {
-    public class GetIssuesResponse
+    public class RepositoryContentResponse
     {
-        public IEnumerable<IssueDto> Issues { get; set; }
+        public IEnumerable<RepositoryContent> Content { get; set; }
     }
 }
