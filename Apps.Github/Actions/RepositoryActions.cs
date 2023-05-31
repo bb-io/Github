@@ -70,12 +70,24 @@ namespace Apps.Github.Actions
             };
         }
 
-        [Action("List repository content", Description = "List repository content by specified path")]
+        [Action("List repository folder content", Description = "List repository content by specified path")]
         public RepositoryContentResponse ListRepositoryContent(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] RepositoryContentRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path).Result;
+            return new RepositoryContentResponse()
+            {
+                Content = content
+            };
+        }
+
+        [Action("List all repository content", Description = "List all repository content")]
+        public RepositoryContentResponse ListAllRepositoryContent(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] ListAllRepositoryContentRequest input)
+        {
+            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
+            var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId)).Result;
             return new RepositoryContentResponse()
             {
                 Content = content
