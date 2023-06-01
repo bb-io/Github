@@ -50,6 +50,17 @@ namespace Apps.Github.Actions
             return new CommitDto(pushFileResult.Commit);
         }
 
+        [Action("Update file", Description = "Update file in repository")]
+        public CommitDto UpdateFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] Models.Commit.Requests.UpdateFileRequest input)
+        {
+            var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
+
+            var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File), input.FileId, false);
+            var pushFileResult = client.Repository.Content.UpdateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
+            return new CommitDto(pushFileResult.Commit);
+        }
+
         [Action("Delete file", Description = "Delete file from repository")]
         public void DeleteFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] Models.Commit.Requests.DeleteFileRequest input)
