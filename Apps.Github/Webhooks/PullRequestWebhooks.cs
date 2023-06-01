@@ -27,7 +27,10 @@ namespace Apps.Github.Webhooks
                     Result = new PullRequestPayloadFlat(data)
                 };
             }
-            return new WebhookResponse<PullRequestPayloadFlat> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+            return new WebhookResponse<PullRequestPayloadFlat> { 
+                HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK),
+                Result = null
+            };
         }
     }
 }
