@@ -12,8 +12,8 @@ namespace Apps.Github
     {
         public BlackbirdGithubClient(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders) : base (new ProductHeaderValue("Blackbird"))
         {
-            var apiToken = authenticationCredentialsProviders.First(p => p.KeyName == "apiToken").Value;
-            var tokenAuth = new Credentials(apiToken);
+            var apiToken = authenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
+            var tokenAuth = new Credentials(apiToken, AuthenticationType.Bearer);
             Credentials = tokenAuth;
         }
     }
