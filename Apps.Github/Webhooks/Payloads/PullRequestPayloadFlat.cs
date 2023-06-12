@@ -11,12 +11,16 @@ namespace Apps.Github.Webhooks.Payloads
         public PullRequestPayloadFlat(PullRequestPayload source) { 
             Action = source.Action;
             Number = source.Number;
-            PullRequestUrl = source.PullRequest.Url;
-            PullRequestId = source.PullRequest.Id;
+            PullRequestUrl = source.Pull_request.Url;
+            PullRequestId = source.Pull_request.Id;
             RepositoryId = source.Repository.Id;
             RepositoryName = source.Repository.Name;
             SenderLogin = source.Sender.Login;
             SenderId = source.Sender.Id;
+        }
+
+        public PullRequestPayloadFlat()
+        {
         }
 
         public string Action { get; set; }

@@ -10,7 +10,7 @@ namespace Apps.Github.Webhooks.Payloads
     {
         public string Action { get; set; }
         public int Number { get; set; }
-        public PullRequest PullRequest { get; set; }
+        public PullRequest Pull_request { get; set; }
         public Repository Repository { get; set; }
         public Sender Sender { get; set; }
         public Installation Installation { get; set; }
