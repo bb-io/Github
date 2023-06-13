@@ -9,6 +9,11 @@ namespace Apps.Github.Webhooks.Payloads
     public class FilesListResponse
     {
         public string FirstFilename { get; set; }
-        public IEnumerable<string> AllFiles { get; set; }
+        public IEnumerable<FileId> AllFiles { get; set; }
+    }
+
+    public class FileId
+    {
+        public string Id { get; set; }
     }
 }

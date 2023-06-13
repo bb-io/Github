@@ -34,7 +34,10 @@ namespace Apps.Github.Webhooks
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { AllFiles = data.Commits.First().Added, FirstFilename = data.Commits.First().Added.First() }
+                    Result = new FilesListResponse() { 
+                        AllFiles = data.Commits.First().Added.Select(c => new FileId() { Id = c }), 
+                        FirstFilename = data.Commits.First().Added.First() 
+                    }
                 };
             }
             return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
@@ -50,7 +53,10 @@ namespace Apps.Github.Webhooks
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { AllFiles = data.Commits.First().Modified, FirstFilename = data.Commits.First().Modified.First() }
+                    Result = new FilesListResponse() { 
+                        AllFiles = data.Commits.First().Modified.Select(c => new FileId() { Id = c }), 
+                        FirstFilename = data.Commits.First().Modified.First() 
+                    }
                 };
             }
             return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
@@ -66,7 +72,10 @@ namespace Apps.Github.Webhooks
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { AllFiles = data.Commits.First().Removed, FirstFilename = data.Commits.First().Removed.First() }
+                    Result = new FilesListResponse() { 
+                        AllFiles = data.Commits.First().Removed.Select(c => new FileId() { Id = c }), 
+                        FirstFilename = data.Commits.First().Removed.First() 
+                    }
                 };
             }
             return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
