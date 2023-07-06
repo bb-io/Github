@@ -93,5 +93,15 @@ namespace Apps.Github.Actions
                 Content = content
             };
         }
+
+        [Action("Is file in folder", Description = "Is file in folder")]
+        public IsFileInFolderResponse IsFileInFolder(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] IsFileInFolderRequest input)
+        {
+            return new IsFileInFolderResponse()
+            {
+                IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
+            };
+        }
     }
 }
