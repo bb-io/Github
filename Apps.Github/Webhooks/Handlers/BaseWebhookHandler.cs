@@ -14,16 +14,18 @@ namespace Apps.Github.Webhooks.Handlers
             SubscriptionEvent = subEvent;
         }
 
-        public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, Dictionary<string, string> values)
+        public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+            Dictionary<string, string> values)
         {
             var bridge = new BridgeService(authenticationCredentialsProviders);
             bridge.Subscribe(SubscriptionEvent, values["webhooksRepositoryId"], values["payloadUrl"]);
         }
 
-        public async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, Dictionary<string, string> values)
+        public async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+            Dictionary<string, string> values)
         {
             var bridge = new BridgeService(authenticationCredentialsProviders);
-            bridge.Unsubscribe(SubscriptionEvent, values["webhooksRepositoryId"]);
+            bridge.Unsubscribe(SubscriptionEvent, values["webhooksRepositoryId"], values["payloadUrl"]);
         }
     }
 }
