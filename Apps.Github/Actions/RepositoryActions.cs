@@ -25,6 +25,7 @@ namespace Apps.Github.Actions
             {
                 FileName = Path.GetFileName(input.FilePath),
                 File = fileData,
+                FilePath = input.FilePath,
                 FileExtension = Path.GetExtension(input.FilePath)
             };
         }
