@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Blackbird.Applications.Sdk.Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +9,13 @@ namespace Apps.Github.Webhooks.Payloads
 {
     public class FilesListResponse
     {
-        public string FirstFilename { get; set; }
-        public IEnumerable<FileId> AllFiles { get; set; }
+        public IEnumerable<FileId> Files { get; set; }
     }
 
     public class FileId
     {
-        public string Id { get; set; }
+
+        [Display("File path")]
+        public string FilePath { get; set; }
     }
 }

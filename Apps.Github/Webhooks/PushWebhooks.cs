@@ -29,14 +29,15 @@ namespace Apps.Github.Webhooks
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
-            if (data.Commits.Any() && data.Commits.First().Added.Any())
+            var addedFiles = new List<FileId>();
+            data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Select(fileId => new FileId() { FilePath = fileId })));
+            if (addedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
                     Result = new FilesListResponse() { 
-                        AllFiles = data.Commits.First().Added.Select(c => new FileId() { Id = c }), 
-                        FirstFilename = data.Commits.First().Added.First() 
+                        Files = addedFiles, 
                     }
                 };
             }
@@ -48,14 +49,41 @@ namespace Apps.Github.Webhooks
         {
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-            if (data.Commits.Any() && data.Commits.First().Modified.Any())
+
+            var modifiedFiles = new List<FileId>();
+            data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Select(fileId => new FileId() { FilePath = fileId })));
+            if (modifiedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
                     Result = new FilesListResponse() { 
-                        AllFiles = data.Commits.First().Modified.Select(c => new FileId() { Id = c }), 
-                        FirstFilename = data.Commits.First().Modified.First() 
+                        Files = modifiedFiles
+                    }
+                };
+            }
+            return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+        }
+
+        [Webhook("On files added and modified", typeof(PushActionHandler), Description = "On files added and modified")]
+        public async Task<WebhookResponse<FilesListResponse>> FilesAddedAndModifiedHandler(WebhookRequest webhookRequest)
+        {
+            var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
+            if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
+
+            var files = new List<FileId>();
+            data.Commits.ForEach(c => {
+                files.AddRange(c.Added.Select(fileId => new FileId() { FilePath = fileId }));
+                files.AddRange(c.Modified.Select(fileId => new FileId() { FilePath = fileId }));
+            });
+            if (files.Any())
+            {
+                return new WebhookResponse<FilesListResponse>
+                {
+                    HttpResponseMessage = null,
+                    Result = new FilesListResponse()
+                    {
+                        Files = files,
                     }
                 };
             }
@@ -67,14 +95,16 @@ namespace Apps.Github.Webhooks
         {
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-            if (data.Commits.Any() && data.Commits.First().Removed.Any())
+
+            var removedFiles = new List<FileId>();
+            data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Select(fileId => new FileId() { FilePath = fileId })));
+            if (removedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
                     Result = new FilesListResponse() { 
-                        AllFiles = data.Commits.First().Removed.Select(c => new FileId() { Id = c }), 
-                        FirstFilename = data.Commits.First().Removed.First() 
+                        Files = removedFiles
                     }
                 };
             }

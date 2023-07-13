@@ -39,9 +39,9 @@ namespace Apps.Github.Webhooks.Payloads
                 CommitterName = c.Committer.Name,
                 CommitterEmail = c.Committer.Email,
                 CommitterUsername = c.Committer.Username,
-                Added = c.Added.Select(c => new FileId() { Id = c }).ToList(),
-                Removed = c.Removed.Select(c => new FileId() { Id = c }).ToList(),
-                Modified = c.Modified.Select(c => new FileId() { Id = c }).ToList()
+                Added = c.Added.Select(c => new FileId() { FilePath = c }).ToList(),
+                Removed = c.Removed.Select(c => new FileId() { FilePath = c }).ToList(),
+                Modified = c.Modified.Select(c => new FileId() { FilePath = c }).ToList()
             }).ToList();
         }
 

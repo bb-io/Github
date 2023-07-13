@@ -24,7 +24,8 @@ namespace Apps.Github.Actions
             return new GetFileResponse()
             {
                 FileName = Path.GetFileName(input.FilePath),
-                File = fileData
+                File = fileData,
+                FileExtension = Path.GetExtension(input.FilePath)
             };
         }
 
