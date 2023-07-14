@@ -14,7 +14,7 @@ namespace Apps.Github.Dtos
             AuthorLogin = source.Author.Login;
             Url = source.Url;
             Files = source.Files;
-            Id = source.Ref;
+            Id = source.Sha;
         }
 
         public CommitDto(Commit source)

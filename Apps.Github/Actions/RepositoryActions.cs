@@ -8,6 +8,7 @@ using Apps.Github.Models.Responses;
 using Apps.Github.Models.Requests;
 using Apps.Github.Webhooks.Payloads;
 using Apps.Github.Models.Respository.Requests;
+using Apps.Github.Models.Commit.Requests;
 
 namespace Apps.Github.Actions
 {
@@ -84,15 +85,24 @@ namespace Apps.Github.Actions
             };
         }
 
-        [Action("List all repository content", Description = "List all repository content")]
-        public RepositoryContentResponse ListAllRepositoryContent(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [Action("List all repository content", Description = "List all repository content (paths)")]
+        public RepositoryContentPathsResponse ListAllRepositoryContent(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] ListAllRepositoryContentRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId)).Result;
-            return new RepositoryContentResponse()
+
+            var commits = new CommitActions().ListRepositoryCommits(authenticationCredentialsProviders, 
+                new ListRepositoryCommitsRequest() { RepositoryId = input.RepositoryId });
+            var tree = githubClient.Git.Tree.GetRecursive(long.Parse(input.RepositoryId), commits.Commits.First().Id).Result;
+            var paths = tree.Tree.Select(x => new RepositoryItem()
             {
-                Content = content
+                Sha = x.Sha,
+                Path = x.Path,
+            });
+            return new RepositoryContentPathsResponse()
+            {
+                Items = paths
             };
         }
 

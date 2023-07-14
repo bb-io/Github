@@ -2,6 +2,7 @@
 using Apps.Github.Models.Commit.Requests;
 using Apps.Github.Models.Commit.Responses;
 using Apps.Github.Models.Requests;
+using Apps.Github.Models.Respository.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -45,6 +46,21 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
 
+            var repContent = new RepositoryActions().ListAllRepositoryContent(authenticationCredentialsProviders, new ListAllRepositoryContentRequest()
+            {
+                RepositoryId = input.RepositoryId,
+            });
+            if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
+            {
+                return UpdateFile(authenticationCredentialsProviders, new Models.Commit.Requests.UpdateFileRequest()
+                {
+                    FileId = repContent.Items.First(p => p.Path == input.DestinationFilePath).Sha,
+                    DestinationFilePath = input.DestinationFilePath,
+                    File = input.File,
+                    RepositoryId = input.RepositoryId,
+                    CommitMessage = input.CommitMessage
+                });
+            }
             var fileUpload = new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File), false);
             var pushFileResult = client.Repository.Content.CreateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
             return new CommitDto(pushFileResult.Commit);
