@@ -22,16 +22,6 @@ namespace Apps.Github.Connections
                 ConnectionProperties = new List<ConnectionProperty>()
                 {
                 }
-            },
-            new ConnectionPropertyGroup
-            {
-                Name = "Webhook data",
-                AuthenticationType = ConnectionAuthenticationType.Undefined,
-                ConnectionUsage = ConnectionUsage.Webhooks,
-                ConnectionProperties = new List<ConnectionProperty>()
-                {
-                    new ConnectionProperty("webhooksRepositoryId"),
-                }
             }
         };
 
