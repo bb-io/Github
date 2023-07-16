@@ -44,7 +44,10 @@ namespace Apps.Github.Webhooks
                     }
                 };
             }
-            return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+            return new WebhookResponse<FilesListResponse> {
+                ReceivedWebhookRequestType = WebhookRequestType.Preflight,
+                HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) 
+            };
         }
 
         [Webhook("On files modified", typeof(PushActionHandler), Description = "On files modified")]
@@ -67,7 +70,10 @@ namespace Apps.Github.Webhooks
                     }
                 };
             }
-            return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+            return new WebhookResponse<FilesListResponse> {
+                ReceivedWebhookRequestType = WebhookRequestType.Preflight,
+                HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) 
+            };
         }
 
         [Webhook("On files added and modified", typeof(PushActionHandler), Description = "On files added and modified")]
@@ -95,7 +101,10 @@ namespace Apps.Github.Webhooks
                     }
                 };
             }
-            return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+            return new WebhookResponse<FilesListResponse> { 
+                ReceivedWebhookRequestType = WebhookRequestType.Preflight,
+                HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) 
+            };
         }
 
         [Webhook("On files removed", typeof(PushActionHandler), Description = "On files removed")]
@@ -118,7 +127,10 @@ namespace Apps.Github.Webhooks
                     }
                 };
             }
-            return new WebhookResponse<FilesListResponse> { HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) };
+            return new WebhookResponse<FilesListResponse> {
+                ReceivedWebhookRequestType = WebhookRequestType.Preflight,
+                HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) 
+            };
         }
     }
 }
