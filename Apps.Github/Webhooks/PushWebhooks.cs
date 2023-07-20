@@ -31,9 +31,9 @@ namespace Apps.Github.Webhooks
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
-            var addedFiles = new List<FileId>();
+            var addedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(fileId => new FileId() { FilePath = fileId })));
+                .Select(filePath => new FilePathObj() { FilePath = filePath })));
             if (addedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
@@ -57,9 +57,9 @@ namespace Apps.Github.Webhooks
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
-            var modifiedFiles = new List<FileId>();
+            var modifiedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(fileId => new FileId() { FilePath = fileId })));
+                .Select(filePath => new FilePathObj() { FilePath = filePath })));
             if (modifiedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
@@ -83,12 +83,12 @@ namespace Apps.Github.Webhooks
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
-            var files = new List<FileId>();
+            var files = new List<FilePathObj>();
             data.Commits.ForEach(c => {
                 files.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                    .Select(fileId => new FileId() { FilePath = fileId }));
+                    .Select(fileId => new FilePathObj() { FilePath = fileId }));
                 files.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                    .Select(fileId => new FileId() { FilePath = fileId }));
+                    .Select(fileId => new FilePathObj() { FilePath = fileId }));
             });
             if (files.Any())
             {
@@ -114,9 +114,9 @@ namespace Apps.Github.Webhooks
             var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
-            var removedFiles = new List<FileId>();
+            var removedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(fileId => new FileId() { FilePath = fileId })));
+                .Select(filePath => new FilePathObj() { FilePath = filePath })));
             if (removedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>

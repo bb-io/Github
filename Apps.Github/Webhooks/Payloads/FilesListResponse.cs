@@ -9,10 +9,10 @@ namespace Apps.Github.Webhooks.Payloads
 {
     public class FilesListResponse
     {
-        public IEnumerable<FileId> Files { get; set; }
+        public IEnumerable<FilePathObj> Files { get; set; }
     }
 
-    public class FileId
+    public class FilePathObj
     {
 
         [Display("File path")]

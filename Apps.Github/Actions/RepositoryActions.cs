@@ -106,6 +106,30 @@ namespace Apps.Github.Actions
             };
         }
 
+        [Action("Get repository files by filepaths", Description = "Get repository files by filepaths from webhooks")]
+        public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
+        {
+            var files = new List<FileData>();
+            foreach(var filePath in input.Files)
+            {
+                var fileData = GetFile(authenticationCredentialsProviders, new GetFileRequest()
+                {
+                    RepositoryId = input.RepositoryId,
+                    FilePath = filePath.FilePath
+                });
+                files.Add(new FileData()
+                {
+                    File = fileData.File,
+                    Filename = fileData.FileName
+                });
+            }
+            return new GetRepositoryFilesFromFilepathsResponse()
+            {
+                Files = files
+            };
+        }
+
         [Action("Is file in folder", Description = "Is file in folder")]
         public IsFileInFolderResponse IsFileInFolder(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] IsFileInFolderRequest input)
