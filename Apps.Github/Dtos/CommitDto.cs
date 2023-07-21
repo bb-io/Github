@@ -1,30 +1,29 @@
-﻿using Octokit;
+﻿using Blackbird.Applications.Sdk.Common;
+using Octokit;
 
 namespace Apps.Github.Dtos
 {
     public class CommitDto
     {
-        public CommitDto(GitHubCommit source) 
+        public CommitDto(GitHubCommit source)
         {
-            AuthorLogin = source.Author.Login;
-            Url = source.Url;
-            Files = source.Files;
             Id = source.Sha;
+            AuthorLogin = source.Author.Login;
+            Message = source.Commit.Message;
+            Url = source.Url;
         }
 
         public CommitDto(Commit source)
         {
             Id = source.Ref;
             AuthorLogin = source.Author.Name;
+            Message = source.Message;
             Url = source.Url;
-            Files = new List<GitHubCommitFile>();
         }
+
         public string Id { get; set; }
-
-        public string AuthorLogin { get; set; }
-
+        [Display("Author login")] public string AuthorLogin { get; set; }
         public string Url { get; set; }
-
-        public IEnumerable<GitHubCommitFile> Files { get; set; }
+        public string Message { get; set; }
     }
 }
