@@ -29,6 +29,24 @@ namespace Apps.Github.Actions
             };
         }
 
+        [Action("Get all files in folder", Description = "Get all files in folder")]
+        public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+            [ActionParameter] GetAllFilesInFolderRequest input)
+        {
+            var resultFiles = new List<FileData>();
+            var content = ListRepositoryContent(authenticationCredentialsProviders, new RepositoryContentRequest()
+            {
+                Path = input.FolderPath,
+                RepositoryId = input.RepositoryId,
+            });
+            foreach (var file in content.Content)
+            {
+                var fileData = GetFile(authenticationCredentialsProviders, new GetFileRequest() { FilePath = file.Path, RepositoryId = input.RepositoryId });
+                resultFiles.Add(new FileData() { Filename = fileData.FileName, File = fileData.File });
+            }
+            return new GetRepositoryFilesFromFilepathsResponse() { Files = resultFiles };
+        }
+
         [Action("Get repository by name", Description = "Get repository info by owner and name")]
         public RepositoryDto GetRepositoryByName(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] GetRepositoryByNameRequest input)
@@ -104,7 +122,7 @@ namespace Apps.Github.Actions
             };
         }
 
-        [Action("Get repository files by filepaths", Description = "Get repository files by filepaths from webhooks")]
+        [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
         public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
         {
