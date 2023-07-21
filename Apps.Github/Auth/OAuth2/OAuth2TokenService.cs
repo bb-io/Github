@@ -1,7 +1,5 @@
 ﻿using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
-using RestSharp;
 using System.Text.Json;
-using System.Threading;
 
 namespace Apps.Github.Authorization.OAuth2
 {

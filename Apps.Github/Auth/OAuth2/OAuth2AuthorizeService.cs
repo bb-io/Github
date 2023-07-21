@@ -1,6 +1,5 @@
 ﻿using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 using Microsoft.AspNetCore.WebUtilities;
-using RestSharp;
 
 namespace Apps.Github.Authorization.OAuth2
 {

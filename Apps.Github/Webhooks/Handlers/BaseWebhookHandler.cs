@@ -2,7 +2,6 @@
 using Apps.Github.Webhooks.Payloads;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Webhooks;
-using RestSharp;
 
 namespace Apps.Github.Webhooks.Handlers
 {

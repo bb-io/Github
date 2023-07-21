@@ -1,12 +1,10 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Octokit;
 using Apps.Github.Dtos;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
 using Apps.Github.Models.Responses;
 using Apps.Github.Models.Requests;
-using Apps.Github.Webhooks.Payloads;
 using Apps.Github.Models.Respository.Requests;
 using Apps.Github.Models.Commit.Requests;
 

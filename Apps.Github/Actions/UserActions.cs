@@ -1,5 +1,4 @@
-﻿using Apps.Github.Models.Respository.Responses;
-using Apps.Github.Models.User.Requests;
+﻿using Apps.Github.Models.User.Requests;
 using Apps.Github.Models.User.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;

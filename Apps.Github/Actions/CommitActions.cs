@@ -1,17 +1,10 @@
 ﻿using Apps.Github.Dtos;
 using Apps.Github.Models.Commit.Requests;
 using Apps.Github.Models.Commit.Responses;
-using Apps.Github.Models.Requests;
 using Apps.Github.Models.Respository.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Octokit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.Github.Actions
 {

@@ -1,6 +1,4 @@
 ﻿using Apps.Github.Dtos;
-using Apps.Github.Models.Commit.Requests;
-using Apps.Github.Models.Commit.Responses;
 using Apps.Github.Models.PullRequest.Requests;
 using Apps.Github.Models.PullRequest.Responses;
 using Blackbird.Applications.Sdk.Common;
