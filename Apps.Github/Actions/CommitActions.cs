@@ -20,21 +20,24 @@ namespace Apps.Github.Actions
             var commits = client.Repository.Commit.GetAll(long.Parse(input.RepositoryId)).Result;
             return new ListRepositoryCommitsResponse()
             {
-                Commits = commits.Select(c => new CommitDto(c))
+                Commits = commits.Select(c => new SmallCommitDto(c))
             };
         }
 
         [Action("Get commit", Description = "Get commit by id")]
-        public CommitDto GetCommit(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        public FullCommitDto GetCommit(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] GetCommitRequest input)
         {
+            if (!long.TryParse(input.RepositoryId, out var intRepoId))
+                throw new("Wrong repository ID");
+                
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var commit = client.Repository.Commit.Get(long.Parse(input.RepositoryId), input.CommitId).Result;
-            return new CommitDto(commit);
+            var commit = client.Repository.Commit.Get(intRepoId, input.CommitId).Result;
+            return new(commit);
         }
 
         [Action("Push file", Description = "Push file to repository")]
-        public CommitDto PushFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        public SmallCommitDto PushFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] PushFileRequest input)
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
@@ -56,18 +59,18 @@ namespace Apps.Github.Actions
             }
             var fileUpload = new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File), false);
             var pushFileResult = client.Repository.Content.CreateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
-            return new CommitDto(pushFileResult.Commit);
+            return new(pushFileResult.Commit);
         }
 
         [Action("Update file", Description = "Update file in repository")]
-        public CommitDto UpdateFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        public SmallCommitDto UpdateFile(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] Models.Commit.Requests.UpdateFileRequest input)
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
 
             var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File), input.FileId, false);
             var pushFileResult = client.Repository.Content.UpdateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
-            return new CommitDto(pushFileResult.Commit);
+            return new(pushFileResult.Commit);
         }
 
         [Action("Delete file", Description = "Delete file from repository")]

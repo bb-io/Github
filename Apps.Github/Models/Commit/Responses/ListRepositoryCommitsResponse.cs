@@ -4,6 +4,6 @@ namespace Apps.Github.Models.Commit.Responses
 {
     public class ListRepositoryCommitsResponse
     {
-        public IEnumerable<CommitDto> Commits { get; set; }
+        public IEnumerable<SmallCommitDto> Commits { get; set; }
     }
 }
