@@ -1,4 +1,6 @@
-﻿namespace Apps.Github.Models.Respository.Responses
+﻿using Blackbird.Applications.Sdk.Common;
+
+namespace Apps.Github.Models.Respository.Responses
 {
     public class GetRepositoryFilesFromFilepathsResponse
     {

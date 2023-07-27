@@ -4,6 +4,7 @@ namespace Apps.Github.Webhooks.Payloads
 {
     public class FilesListResponse
     {
+        [Display("File paths")]
         public IEnumerable<FilePathObj> Files { get; set; }
     }
 
