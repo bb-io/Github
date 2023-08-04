@@ -49,7 +49,7 @@ namespace Apps.Github.Actions
 
         [Action("Get repository issues", Description = "Get opened issues against repository")]
         public GetIssuesResponse GetIssuesInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] Models.Requests.RepositoryRequest input)
+            [ActionParameter] RepositoryRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var issues = githubClient.Issue.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
@@ -61,7 +61,7 @@ namespace Apps.Github.Actions
 
         [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
         public GetPullRequestsResponse GetPullRequestsInRepository(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] Models.Requests.RepositoryRequest input)
+            [ActionParameter] RepositoryRequest input)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var pullRequests = githubClient.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;

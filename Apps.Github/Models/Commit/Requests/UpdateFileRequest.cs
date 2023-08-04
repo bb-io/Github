@@ -2,6 +2,6 @@
 {
     public class UpdateFileRequest : PushFileRequest
     {
-        public string FileId { get; set; }
+        public string? FileId { get; set; }
     }
 }

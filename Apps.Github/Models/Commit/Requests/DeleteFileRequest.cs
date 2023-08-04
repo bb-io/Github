@@ -6,8 +6,6 @@
 
         public string FilePath { get; set; }
 
-        public string FileId { get; set; }
-
         public string CommitMessage { get; set; }
     }
 }
