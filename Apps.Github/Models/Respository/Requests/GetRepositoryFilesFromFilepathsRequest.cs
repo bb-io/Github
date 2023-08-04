@@ -9,7 +9,7 @@ namespace Apps.Github.Models.Respository.Requests
         public string RepositoryId { get; set; }
 
 
-        [Display("Filepaths array (only from webhooks)")]
+        [Display("File paths array (only from webhooks)")]
         public IEnumerable<FilePathObj> Files { get; set; }
     }
 }
