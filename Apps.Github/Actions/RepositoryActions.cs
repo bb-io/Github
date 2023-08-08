@@ -5,7 +5,6 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
 using Apps.Github.Models.Respository.Requests;
 using Apps.Github.Models.Commit.Requests;
-using Apps.Github.Utils;
 
 namespace Apps.Github.Actions
 {
@@ -117,8 +116,7 @@ namespace Apps.Github.Actions
             IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-
-            var content = await Pagination.Paginate(githubClient.Repository.GetAllForCurrent);
+            var content = await githubClient.Repository.GetAllForCurrent();
             var repositories = content.Select(x => new RepositoryDto(x)).ToArray();
 
             return new(repositories);
