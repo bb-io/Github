@@ -19,7 +19,7 @@
             Deleted = source.Deleted;
             Forced = source.Forced;
             Compare = source.Compare;
-            Commits = source.Commits.Select(c => new CommitFlat()
+            Commits = source.Commits.Select(c => new CommitFlat
             {
                 Id = c.Id,
                 TreeId = c.TreeId,
@@ -33,9 +33,9 @@
                 CommitterName = c.Committer.Name,
                 CommitterEmail = c.Committer.Email,
                 CommitterUsername = c.Committer.Username,
-                Added = c.Added.Select(c => new FilePathObj() { FilePath = c }).ToList(),
-                Removed = c.Removed.Select(c => new FilePathObj() { FilePath = c }).ToList(),
-                Modified = c.Modified.Select(c => new FilePathObj() { FilePath = c }).ToList()
+                Added = c.Added.Select(c => new FilePathObj { FilePath = c }).ToList(),
+                Removed = c.Removed.Select(c => new FilePathObj { FilePath = c }).ToList(),
+                Modified = c.Modified.Select(c => new FilePathObj { FilePath = c }).ToList()
             }).ToList();
         }
 

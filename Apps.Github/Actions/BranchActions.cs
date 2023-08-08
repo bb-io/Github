@@ -17,7 +17,7 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var branches = client.Repository.Branch.GetAll(long.Parse(input.RepositoryId)).Result;
-            return new ListRepositoryBranchesResponse()
+            return new ListRepositoryBranchesResponse
             {
                 Branches = branches.Select(b => new BranchDto(b))
             };

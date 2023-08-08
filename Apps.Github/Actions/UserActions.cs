@@ -15,7 +15,7 @@ namespace Apps.Github.Actions
         {
             var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var user = githubClient.User.Get(input.UserLogin).Result;
-            return new UserDataResponse()
+            return new UserDataResponse
             {
                 Name = user.Name,
                 UserUrl = user.Url,

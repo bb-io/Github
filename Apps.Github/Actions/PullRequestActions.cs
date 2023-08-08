@@ -17,7 +17,7 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var pulls = client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
-            return new ListPullRequestsResponse()
+            return new ListPullRequestsResponse
             {
                 PullRequests = pulls.Select(p => new PullRequestDto(p))
             };
@@ -56,7 +56,7 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var files = client.PullRequest.Files(long.Parse(input.RepositoryId), int.Parse(input.PullRequestNumber)).Result;
-            return new ListPullRequestFilesResponse()
+            return new ListPullRequestFilesResponse
             {
                 Files = files
             };
@@ -68,7 +68,7 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var commits = client.PullRequest.Commits(long.Parse(input.RepositoryId), int.Parse(input.PullRequestNumber)).Result;
-            return new ListPullRequestCommitsResponse()
+            return new ListPullRequestCommitsResponse
             {
                 Commits = commits.Select(p => new PullRequestCommitDto(p))
             };
@@ -79,7 +79,7 @@ namespace Apps.Github.Actions
             [ActionParameter] GetPullRequest input)
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            return new IsPullMergedResponse()
+            return new IsPullMergedResponse
             {
                 IsPullMerged = client.PullRequest.Merged(long.Parse(input.RepositoryId), int.Parse(input.PullRequestNumber)).Result,
             };

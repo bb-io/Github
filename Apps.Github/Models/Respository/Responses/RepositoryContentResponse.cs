@@ -1,6 +1,6 @@
 ﻿using Octokit;
 
-namespace Apps.Github.Models.Responses
+namespace Apps.Github.Models.Respository.Responses
 {
     public class RepositoryContentResponse
     {

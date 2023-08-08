@@ -1,7 +1,7 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
-using System.Text.Json;
+﻿using System.Text.Json;
+using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 
-namespace Apps.Github.Authorization.OAuth2
+namespace Apps.Github.Auth.OAuth2
 {
     public class OAuth2TokenService : IOAuth2TokenService
     {

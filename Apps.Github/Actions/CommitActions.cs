@@ -18,7 +18,7 @@ namespace Apps.Github.Actions
         {
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
             var commits = client.Repository.Commit.GetAll(long.Parse(input.RepositoryId)).Result;
-            return new ListRepositoryCommitsResponse()
+            return new ListRepositoryCommitsResponse
             {
                 Commits = commits.Select(c => new SmallCommitDto(c))
             };
@@ -45,13 +45,13 @@ namespace Apps.Github.Actions
             var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
 
             var repContent = new RepositoryActions().ListAllRepositoryContent(authenticationCredentialsProviders,
-                new ListAllRepositoryContentRequest()
+                new ListAllRepositoryContentRequest
                 {
                     RepositoryId = input.RepositoryId,
                 });
             if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
             {
-                return UpdateFile(authenticationCredentialsProviders, new UpdateFileRequest()
+                return UpdateFile(authenticationCredentialsProviders, new UpdateFileRequest
                 {
                     FileId = repContent.Items.First(p => p.Path == input.DestinationFilePath).Sha,
                     DestinationFilePath = input.DestinationFilePath,

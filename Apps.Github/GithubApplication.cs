@@ -1,4 +1,4 @@
-﻿using Apps.Github.Authorization.OAuth2;
+﻿using Apps.Github.Auth.OAuth2;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication.OAuth2;
 

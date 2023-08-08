@@ -30,13 +30,14 @@ namespace Apps.Github.Webhooks
 
             var addedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(filePath => new FilePathObj() { FilePath = filePath })));
+                .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (addedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { 
+                    Result = new FilesListResponse
+                    { 
                         Files = addedFiles, 
                     }
                 };
@@ -56,13 +57,14 @@ namespace Apps.Github.Webhooks
 
             var modifiedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(filePath => new FilePathObj() { FilePath = filePath })));
+                .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (modifiedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { 
+                    Result = new FilesListResponse
+                    { 
                         Files = modifiedFiles
                     }
                 };
@@ -83,16 +85,16 @@ namespace Apps.Github.Webhooks
             var files = new List<FilePathObj>();
             data.Commits.ForEach(c => {
                 files.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                    .Select(fileId => new FilePathObj() { FilePath = fileId }));
+                    .Select(fileId => new FilePathObj { FilePath = fileId }));
                 files.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                    .Select(fileId => new FilePathObj() { FilePath = fileId }));
+                    .Select(fileId => new FilePathObj { FilePath = fileId }));
             });
             if (files.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse()
+                    Result = new FilesListResponse
                     {
                         Files = files,
                     }
@@ -113,13 +115,14 @@ namespace Apps.Github.Webhooks
 
             var removedFiles = new List<FilePathObj>();
             data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
-                .Select(filePath => new FilePathObj() { FilePath = filePath })));
+                .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (removedFiles.Any())
             {
                 return new WebhookResponse<FilesListResponse>
                 {
                     HttpResponseMessage = null,
-                    Result = new FilesListResponse() { 
+                    Result = new FilesListResponse
+                    { 
                         Files = removedFiles
                     }
                 };

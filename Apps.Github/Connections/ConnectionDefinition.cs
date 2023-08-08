@@ -6,14 +6,14 @@ namespace Apps.Github.Connections
     public class ConnectionDefinition : IConnectionDefinition
     {
 
-        public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>()
+        public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>
         {
             new ConnectionPropertyGroup
             {
                 Name = "OAuth",
                 AuthenticationType = ConnectionAuthenticationType.OAuth2,
                 ConnectionUsage = ConnectionUsage.Actions,
-                ConnectionProperties = new List<ConnectionProperty>()
+                ConnectionProperties = new List<ConnectionProperty>
                 {
                 }
             }

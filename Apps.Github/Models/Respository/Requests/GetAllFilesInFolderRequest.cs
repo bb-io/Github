@@ -1,9 +1,6 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Apps.Github.DataSourceHandlers;
+using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.Github.Models.Respository.Requests
 {
@@ -12,7 +9,8 @@ namespace Apps.Github.Models.Respository.Requests
         [Display("Folder path (e.g. \"Folder1/Folder2\")")]
         public string FolderPath { get; set; }
 
-        [Display("Repository ID")]
+        [Display("Repository")]
+        [DataSource(typeof(RepositoryDataHandler))]
         public string RepositoryId { get; set; }
     }
 }
