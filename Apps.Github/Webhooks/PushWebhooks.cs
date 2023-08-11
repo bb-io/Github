@@ -1,8 +1,11 @@
-﻿using Apps.Github.Webhooks.Handlers;
+﻿using Apps.Github.Models.Respository.Responses;
+using Apps.Github.Webhooks.Handlers;
 using Apps.Github.Webhooks.Payloads;
 using Blackbird.Applications.Sdk.Common.Webhooks;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Newtonsoft.Json;
 using System.Net;
+using System.Text.RegularExpressions;
 
 namespace Apps.Github.Webhooks
 {
@@ -29,7 +32,7 @@ namespace Apps.Github.Webhooks
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
             var addedFiles = new List<FilePathObj>();
-            data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
+            data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
                 .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (addedFiles.Any())
             {
@@ -56,7 +59,7 @@ namespace Apps.Github.Webhooks
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
             var modifiedFiles = new List<FilePathObj>();
-            data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
+            data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
                 .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (modifiedFiles.Any())
             {
@@ -84,9 +87,9 @@ namespace Apps.Github.Webhooks
 
             var files = new List<FilePathObj>();
             data.Commits.ForEach(c => {
-                files.AddRange(c.Added.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
+                files.AddRange(c.Added.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
                     .Select(fileId => new FilePathObj { FilePath = fileId }));
-                files.AddRange(c.Modified.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
+                files.AddRange(c.Modified.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
                     .Select(fileId => new FilePathObj { FilePath = fileId }));
             });
             if (files.Any())
@@ -114,7 +117,7 @@ namespace Apps.Github.Webhooks
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
             var removedFiles = new List<FilePathObj>();
-            data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || f.Contains(input.FolderPath))
+            data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
                 .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (removedFiles.Any())
             {
@@ -131,6 +134,12 @@ namespace Apps.Github.Webhooks
                 ReceivedWebhookRequestType = WebhookRequestType.Preflight,
                 HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK) 
             };
+        }
+        private bool IsFilePathMatchingPattern(string pattern, string filePath)
+        {
+            Matcher matcher = new Matcher();
+            matcher.AddIncludePatterns(new[] { pattern });
+            return matcher.Match(filePath).HasMatches;
         }
     }
 }
