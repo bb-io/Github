@@ -117,7 +117,7 @@ namespace Apps.Github.Webhooks
             if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
 
             var removedFiles = new List<FilePathObj>();
-            data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
+            data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f)m)
                 .Select(filePath => new FilePathObj { FilePath = filePath })));
             if (removedFiles.Any())
             {

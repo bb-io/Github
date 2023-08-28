@@ -1,6 +1,7 @@
 ﻿using Apps.Github.DataSourceHandlers;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using File = Blackbird.Applications.Sdk.Common.Files.File;
 
 namespace Apps.Github.Models.Commit.Requests
 {
@@ -13,7 +14,8 @@ namespace Apps.Github.Models.Commit.Requests
         [Display("Destination file path (e.g. \"Test/testFile.txt\")")]
         public string DestinationFilePath { get; set; }
 
-        public byte[] File { get; set; }
+        [Display("File")]
+        public File File { get; set; }
 
         [Display("Commit message")]
         public string CommitMessage { get; set; }

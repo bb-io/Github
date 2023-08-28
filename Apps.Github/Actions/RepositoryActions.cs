@@ -5,6 +5,8 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
 using Apps.Github.Models.Respository.Requests;
 using Apps.Github.Models.Commit.Requests;
+using File = Blackbird.Applications.Sdk.Common.Files.File;
+using System.Net.Mime;
 
 namespace Apps.Github.Actions
 {
@@ -21,11 +23,19 @@ namespace Apps.Github.Actions
                 new GetRepositoryByIdRequest { RepositoryId = input.RepositoryId });
             var fileData = githubClient.Repository.Content
                 .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
+
+            string filename = Path.GetFileName(input.FilePath);
+            string mimeType = "";
+            if (MimeTypes.TryGetMimeType(filename, out mimeType))
+                mimeType = MediaTypeNames.Application.Octet;
             return new GetFileResponse
             {
-                FileName = Path.GetFileName(input.FilePath),
-                File = fileData,
                 FilePath = input.FilePath,
+                File = new File(fileData)
+                {
+                    ContentType = mimeType,
+                    Name = filename
+                },
                 FileExtension = Path.GetExtension(input.FilePath)
             };
         }
@@ -35,7 +45,7 @@ namespace Apps.Github.Actions
             IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] GetAllFilesInFolderRequest input)
         {
-            var resultFiles = new List<FileData>();
+            var resultFiles = new List<File>();
             var content = ListRepositoryContent(authenticationCredentialsProviders, new RepositoryContentRequest
             {
                 Path = input.FolderPath,
@@ -45,7 +55,7 @@ namespace Apps.Github.Actions
             {
                 var fileData = GetFile(authenticationCredentialsProviders,
                     new GetFileRequest { FilePath = file.Path, RepositoryId = input.RepositoryId });
-                resultFiles.Add(new FileData { Filename = fileData.FileName, File = fileData.File });
+                resultFiles.Add(new File(fileData.File.Bytes) { Name = fileData.File.Name });
             }
 
             return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
@@ -150,7 +160,7 @@ namespace Apps.Github.Actions
             IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
             [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
         {
-            var files = new List<FileData>();
+            var files = new List<File>();
             foreach (var filePath in input.Files)
             {
                 var fileData = GetFile(authenticationCredentialsProviders, new GetFileRequest
@@ -158,10 +168,9 @@ namespace Apps.Github.Actions
                     RepositoryId = input.RepositoryId,
                     FilePath = filePath
                 });
-                files.Add(new FileData
+                files.Add(new File(fileData.File.Bytes)
                 {
-                    File = fileData.File,
-                    Filename = fileData.FileName
+                    Name = fileData.File.Name
                 });
             }
 

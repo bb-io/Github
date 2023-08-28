@@ -62,7 +62,7 @@ namespace Apps.Github.Actions
             }
 
             var fileUpload =
-                new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File), false);
+                new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File.Bytes), false);
             var pushFileResult = client.Repository.Content
                 .CreateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
             return new(pushFileResult.Commit);
@@ -77,7 +77,7 @@ namespace Apps.Github.Actions
 
             var fileId = input.FileId ?? GetFileId(creds, input.RepositoryId, input.DestinationFilePath);
 
-            var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File),
+            var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File.Bytes),
                 fileId, false);
             var pushFileResult = client.Repository.Content
                 .UpdateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
