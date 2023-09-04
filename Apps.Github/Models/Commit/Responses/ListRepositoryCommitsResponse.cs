@@ -1,9 +1,8 @@
 ﻿using Apps.Github.Dtos;
 
-namespace Apps.Github.Models.Commit.Responses
+namespace Apps.Github.Models.Commit.Responses;
+
+public class ListRepositoryCommitsResponse
 {
-    public class ListRepositoryCommitsResponse
-    {
-        public IEnumerable<SmallCommitDto> Commits { get; set; }
-    }
+    public IEnumerable<SmallCommitDto> Commits { get; set; }
 }

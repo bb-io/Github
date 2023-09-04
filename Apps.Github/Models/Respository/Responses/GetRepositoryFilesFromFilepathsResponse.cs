@@ -1,9 +1,8 @@
-﻿using File = Blackbird.Applications.Sdk.Common.Files.File;
+﻿using Apps.Github.Models.Commit.Responses;
 
-namespace Apps.Github.Models.Respository.Responses
+namespace Apps.Github.Models.Respository.Responses;
+
+public class GetRepositoryFilesFromFilepathsResponse
 {
-    public class GetRepositoryFilesFromFilepathsResponse
-    {
-        public IEnumerable<File> Files { get; set; }
-    }
+    public IEnumerable<GithubFile> Files { get; set; }
 }

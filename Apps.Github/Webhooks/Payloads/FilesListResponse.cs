@@ -1,17 +1,16 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Github.Webhooks.Payloads
+namespace Apps.Github.Webhooks.Payloads;
+
+public class FilesListResponse
 {
-    public class FilesListResponse
-    {
-        [Display("File paths")]
-        public IEnumerable<FilePathObj> Files { get; set; }
-    }
+    [Display("File paths")]
+    public IEnumerable<FilePathObj> Files { get; set; }
+}
 
-    public class FilePathObj
-    {
+public class FilePathObj
+{
 
-        [Display("File path")]
-        public string FilePath { get; set; }
-    }
+    [Display("File path")]
+    public string FilePath { get; set; }
 }

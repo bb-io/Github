@@ -2,12 +2,11 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.Github.Models.PullRequest.Requests
+namespace Apps.Github.Models.PullRequest.Requests;
+
+public class ListPullsRequest
 {
-    public class ListPullsRequest
-    {
-        [Display("Repository")]
-        [DataSource(typeof(RepositoryDataHandler))]
-        public string RepositoryId { get; set; }
-    }
+    [Display("Repository")]
+    [DataSource(typeof(RepositoryDataHandler))]
+    public string RepositoryId { get; set; }
 }

@@ -2,13 +2,12 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.Github.Models.Branch.Requests
+namespace Apps.Github.Models.Branch.Requests;
+
+public class GetBranchRequest
 {
-    public class GetBranchRequest
-    {
-        [Display("Repository")]
-        [DataSource(typeof(RepositoryDataHandler))]
-        public string RepositoryId { get; set;}
-        public string Name { get; set; }
-    }
+    [Display("Repository")]
+    [DataSource(typeof(RepositoryDataHandler))]
+    public string RepositoryId { get; set;}
+    public string Name { get; set; }
 }

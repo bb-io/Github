@@ -1,9 +1,8 @@
 ﻿using Apps.Github.Dtos;
 
-namespace Apps.Github.Models.PullRequest.Responses
+namespace Apps.Github.Models.PullRequest.Responses;
+
+public class ListPullRequestCommitsResponse
 {
-    public class ListPullRequestCommitsResponse
-    {
-        public IEnumerable<PullRequestCommitDto> Commits { get; set; }
-    }
+    public IEnumerable<PullRequestCommitDto> Commits { get; set; }
 }

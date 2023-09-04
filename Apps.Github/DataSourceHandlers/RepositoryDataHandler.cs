@@ -19,14 +19,13 @@ public class RepositoryDataHandler : BaseInvocable, IAsyncDataSourceHandler
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        var actions = new RepositoryActions();
-        var repos = await actions.ListRepositories(Creds);
+        var content = await new BlackbirdGithubClient(Creds).Repository.GetAllForCurrent();
 
-        return repos.Repositories
+        return content
             .Where(x => context.SearchString == null ||
                         x.Name.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(x => x.CreatedAt)
             .Take(20)
-            .ToDictionary(x => x.Id, x => x.Name);
+            .ToDictionary(x => x.Id.ToString(), x => x.Name);
     }
 }

@@ -2,12 +2,11 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.Github.Webhooks.Payloads
+namespace Apps.Github.Webhooks.Payloads;
+
+public class WebhookInput
 {
-    public class WebhookInput
-    {
-        [Display("Repository")]
-        [DataSource(typeof(RepositoryDataHandler))]
-        public string RepositoryId { get; set; }
-    }
+    [Display("Repository")]
+    [DataSource(typeof(RepositoryDataHandler))]
+    public string RepositoryId { get; set; }
 }

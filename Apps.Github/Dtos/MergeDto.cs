@@ -1,13 +1,12 @@
 ﻿using Octokit;
 
-namespace Apps.Github.Dtos
-{
-    public class MergeDto
-    {
-        public MergeDto(Merge source) {
-            Id = source.Ref;
-        }
+namespace Apps.Github.Dtos;
 
-        public string Id { get; set; }
+public class MergeDto
+{
+    public MergeDto(Merge source) {
+        Id = source.Ref;
     }
+
+    public string Id { get; set; }
 }

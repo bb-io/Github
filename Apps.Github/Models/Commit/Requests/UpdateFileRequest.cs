@@ -1,10 +1,9 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Github.Models.Commit.Requests
+namespace Apps.Github.Models.Commit.Requests;
+
+public class UpdateFileRequest : PushFileRequest
 {
-    public class UpdateFileRequest : PushFileRequest
-    {
-        [Display("File ID (Sha)")]
-        public string? FileId { get; set; }
-    }
+    [Display("File ID (Sha)")]
+    public string? FileId { get; set; }
 }

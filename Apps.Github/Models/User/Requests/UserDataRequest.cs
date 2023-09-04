@@ -1,10 +1,9 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Github.Models.User.Requests
+namespace Apps.Github.Models.User.Requests;
+
+public class UserDataRequest
 {
-    public class UserDataRequest
-    {
-        [Display("User login")]
-        public string UserLogin { get; set; }
-    }
+    [Display("User login")]
+    public string UserLogin { get; set; }
 }

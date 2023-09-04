@@ -1,9 +1,8 @@
 ﻿using Octokit;
 
-namespace Apps.Github.Models.PullRequest.Responses
+namespace Apps.Github.Models.PullRequest.Responses;
+
+public class ListPullRequestFilesResponse
 {
-    public class ListPullRequestFilesResponse
-    {
-        public IEnumerable<PullRequestFile> Files { get; set; }
-    }
+    public IEnumerable<PullRequestFile> Files { get; set; }
 }

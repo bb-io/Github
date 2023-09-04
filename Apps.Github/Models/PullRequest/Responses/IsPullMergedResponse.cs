@@ -1,10 +1,9 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Github.Models.PullRequest.Responses
+namespace Apps.Github.Models.PullRequest.Responses;
+
+public class IsPullMergedResponse
 {
-    public class IsPullMergedResponse
-    {
-        [Display("Is merged")]
-        public bool IsPullMerged { get; set; }
-    }
+    [Display("Is merged")]
+    public bool IsPullMerged { get; set; }
 }

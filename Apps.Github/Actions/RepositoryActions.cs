@@ -4,191 +4,190 @@ using Apps.Github.Dtos;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
 using Apps.Github.Models.Respository.Requests;
-using Apps.Github.Models.Commit.Requests;
 using File = Blackbird.Applications.Sdk.Common.Files.File;
 using System.Net.Mime;
+using Apps.Github.Actions.Base;
+using Apps.Github.Models.Commit.Responses;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using Octokit;
+using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 
-namespace Apps.Github.Actions
+namespace Apps.Github.Actions;
+
+[ActionList]
+public class RepositoryActions : GithubActions
 {
-    [ActionList]
-    public class RepositoryActions
+    public RepositoryActions(InvocationContext invocationContext) : base(invocationContext)
     {
-        [Action("Get repository file", Description = "Get repository file by path")]
-        public GetFileResponse GetFile(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] GetFileRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var repoInfo = GetRepositoryById(authenticationCredentialsProviders,
-                new GetRepositoryByIdRequest { RepositoryId = input.RepositoryId });
-            var fileData = githubClient.Repository.Content
-                .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
+    }
 
-            string filename = Path.GetFileName(input.FilePath);
-            string mimeType = "";
-            if (MimeTypes.TryGetMimeType(filename, out mimeType))
-                mimeType = MediaTypeNames.Application.Octet;
-            return new GetFileResponse
+    [Action("Get repository file", Description = "Get repository file by path")]
+    public GetFileResponse GetFile([ActionParameter] GetFileRequest input)
+    {
+        var repoInfo = GetRepositoryById(new() { RepositoryId = input.RepositoryId });
+        var fileData = Client.Repository.Content
+            .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
+
+        string filename = Path.GetFileName(input.FilePath);
+        if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
+            mimeType = MediaTypeNames.Application.Octet;
+
+        return new GetFileResponse
+        {
+            FilePath = input.FilePath,
+            File = new File(fileData)
             {
-                FilePath = input.FilePath,
-                File = new File(fileData)
+                ContentType = mimeType,
+                Name = filename
+            },
+            FileExtension = Path.GetExtension(input.FilePath)
+        };
+    }
+
+    [Action("Get all files in folder", Description = "Get all files in folder")]
+    public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(
+        [ActionParameter] GetAllFilesInFolderRequest input)
+    {
+        var resultFiles = new List<GithubFile>();
+        var content = ListRepositoryContent(Creds, new RepositoryContentRequest
+        {
+            Path = input.FolderPath,
+            RepositoryId = input.RepositoryId,
+        });
+        foreach (var file in content.Content)
+        {
+            var fileData = GetFile(new()
+            {
+                FilePath = file.Path,
+                RepositoryId = input.RepositoryId
+            });
+            
+            resultFiles.Add(new GithubFile()
+            {
+                File = new(fileData.File.Bytes)
                 {
-                    ContentType = mimeType,
-                    Name = filename
+                    Name = fileData.File.Name,
+                    ContentType = fileData.File.ContentType
                 },
-                FileExtension = Path.GetExtension(input.FilePath)
-            };
+                FilePath = fileData.FilePath
+            });
         }
 
-        [Action("Get all files in folder", Description = "Get all files in folder")]
-        public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] GetAllFilesInFolderRequest input)
+        return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
+    }
+
+    [Action("Get repository by name", Description = "Get repository info by owner and name")]
+    public RepositoryDto GetRepositoryByName([ActionParameter] GetRepositoryByNameRequest input)
+    {
+        var repository = Client.Repository.Get(input.RepositoryOwner, input.RepositoryName).Result;
+        return new RepositoryDto(repository);
+    }
+
+    [Action("Get repository by id", Description = "Get repository info by id")]
+    public RepositoryDto GetRepositoryById([ActionParameter] GetRepositoryByIdRequest input)
+    {
+        var repository = Client.Repository.Get(long.Parse(input.RepositoryId)).Result;
+        return new RepositoryDto(repository);
+    }
+
+    [Action("Get repository issues", Description = "Get opened issues against repository")]
+    public GetIssuesResponse GetIssuesInRepository([ActionParameter] RepositoryRequest input)
+    {
+        var issues = Client.Issue.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
+
+        return new()
         {
-            var resultFiles = new List<File>();
-            var content = ListRepositoryContent(authenticationCredentialsProviders, new RepositoryContentRequest
+            Issues = issues.Select(issue => new IssueDto(issue))
+        };
+    }
+
+    [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
+    public GetPullRequestsResponse GetPullRequestsInRepository([ActionParameter] RepositoryRequest input)
+    {
+        var pullRequests = Client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
+        return new()
+        {
+            PullRequests = pullRequests.Select(p => new PullRequestDto(p))
+        };
+    }
+
+    [Action("List repository folder content", Description = "List repository content by specified path")]
+    public RepositoryContentResponse ListRepositoryContent(
+        IEnumerable<AuthenticationCredentialsProvider> Creds,
+        [ActionParameter] RepositoryContentRequest input)
+    {
+        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path)
+            .Result;
+        return new()
+        {
+            Content = content
+        };
+    }
+
+    [Action("List repositories", Description = "List all repositories")]
+    public async Task<ListRepositoriesResponse> ListRepositories()
+    {
+        var content = await Client.Repository.GetAllForCurrent();
+        var repositories = content.Select(x => new RepositoryDto(x)).ToArray();
+
+        return new(repositories);
+    }
+
+    [Action("List all repository content", Description = "List all repository content (paths)")]
+    public RepositoryContentPathsResponse ListAllRepositoryContent(
+        [ActionParameter] ListAllRepositoryContentRequest input)
+    {
+        var commits = new CommitActions(InvocationContext)
+            .ListRepositoryCommits(new() { RepositoryId = input.RepositoryId });
+        var tree = Client.Git.Tree.GetRecursive(long.Parse(input.RepositoryId), commits.Commits.First().Id)
+            .Result;
+        var paths = tree.Tree.Select(x => new RepositoryItem
+        {
+            Sha = x.Sha,
+            Path = x.Path,
+            IsFolder = x.Type == TreeType.Tree
+        });
+        return new RepositoryContentPathsResponse
+        {
+            Items = paths
+        };
+    }
+
+    [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
+    public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
+        [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
+    {
+        var files = new List<GithubFile>();
+        foreach (var filePath in input.Files)
+        {
+            var fileData = GetFile(new GetFileRequest
             {
-                Path = input.FolderPath,
                 RepositoryId = input.RepositoryId,
+                FilePath = filePath
             });
-            foreach (var file in content.Content)
+            files.Add(new GithubFile
             {
-                var fileData = GetFile(authenticationCredentialsProviders,
-                    new GetFileRequest { FilePath = file.Path, RepositoryId = input.RepositoryId });
-                resultFiles.Add(new File(fileData.File.Bytes) { Name = fileData.File.Name });
-            }
-
-            return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
-        }
-
-        [Action("Get repository by name", Description = "Get repository info by owner and name")]
-        public RepositoryDto GetRepositoryByName(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] GetRepositoryByNameRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var repository = githubClient.Repository.Get(input.RepositoryOwner, input.RepositoryName).Result;
-            return new RepositoryDto(repository);
-        }
-
-        [Action("Get repository by id", Description = "Get repository info by id")]
-        public RepositoryDto GetRepositoryById(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] GetRepositoryByIdRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var repository = githubClient.Repository.Get(long.Parse(input.RepositoryId)).Result;
-            return new RepositoryDto(repository);
-        }
-
-        [Action("Get repository issues", Description = "Get opened issues against repository")]
-        public GetIssuesResponse GetIssuesInRepository(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] RepositoryRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var issues = githubClient.Issue.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
-            return new GetIssuesResponse
-            {
-                Issues = issues.Select(issue => new IssueDto(issue))
-            };
-        }
-
-        [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
-        public GetPullRequestsResponse GetPullRequestsInRepository(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] RepositoryRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var pullRequests = githubClient.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
-            return new GetPullRequestsResponse
-            {
-                PullRequests = pullRequests.Select(p => new PullRequestDto(p))
-            };
-        }
-
-        [Action("List repository folder content", Description = "List repository content by specified path")]
-        public RepositoryContentResponse ListRepositoryContent(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] RepositoryContentRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path)
-                .Result;
-            return new RepositoryContentResponse
-            {
-                Content = content
-            };
-        }
-
-        [Action("List repositories", Description = "List all repositories")]
-        public async Task<ListRepositoriesResponse> ListRepositories(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var content = await githubClient.Repository.GetAllForCurrent();
-            var repositories = content.Select(x => new RepositoryDto(x)).ToArray();
-
-            return new(repositories);
-        }
-
-        [Action("List all repository content", Description = "List all repository content (paths)")]
-        public RepositoryContentPathsResponse ListAllRepositoryContent(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] ListAllRepositoryContentRequest input)
-        {
-            var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-            var content = githubClient.Repository.Content.GetAllContents(long.Parse(input.RepositoryId)).Result;
-
-            var commits = new CommitActions().ListRepositoryCommits(authenticationCredentialsProviders,
-                new ListRepositoryCommitsRequest { RepositoryId = input.RepositoryId });
-            var tree = githubClient.Git.Tree.GetRecursive(long.Parse(input.RepositoryId), commits.Commits.First().Id)
-                .Result;
-            var paths = tree.Tree.Select(x => new RepositoryItem
-            {
-                Sha = x.Sha,
-                Path = x.Path,
+                FilePath = fileData.FilePath,
+                File = new(fileData.File.Bytes)
+                {
+                    Name = fileData.File.Name,
+                    ContentType = fileData.File.ContentType
+                }
             });
-            return new RepositoryContentPathsResponse
-            {
-                Items = paths
-            };
         }
 
-        [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
-        public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
+        return new()
         {
-            var files = new List<File>();
-            foreach (var filePath in input.Files)
-            {
-                var fileData = GetFile(authenticationCredentialsProviders, new GetFileRequest
-                {
-                    RepositoryId = input.RepositoryId,
-                    FilePath = filePath
-                });
-                files.Add(new File(fileData.File.Bytes)
-                {
-                    Name = fileData.File.Name
-                });
-            }
+            Files = files
+        };
+    }
 
-            return new GetRepositoryFilesFromFilepathsResponse
-            {
-                Files = files
-            };
-        }
-
-        [Action("Is file in folder", Description = "Is file in folder")]
-        public IsFileInFolderResponse IsFileInFolder(
-            IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-            [ActionParameter] IsFileInFolderRequest input)
+    [Action("Is file in folder", Description = "Is file in folder")]
+    public IsFileInFolderResponse IsFileInFolder([ActionParameter] IsFileInFolderRequest input)
+    {
+        return new()
         {
-            return new IsFileInFolderResponse
-            {
-                IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
-            };
-        }
+            IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
+        };
     }
 }

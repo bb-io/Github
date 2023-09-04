@@ -1,14 +1,18 @@
-﻿namespace Apps.Github.Models.Respository.Responses
+﻿using Blackbird.Applications.Sdk.Common;
+
+namespace Apps.Github.Models.Respository.Responses;
+
+public class RepositoryContentPathsResponse
 {
-    public class RepositoryContentPathsResponse
-    {
-        public IEnumerable<RepositoryItem> Items { get; set; }  
-    }
+    public IEnumerable<RepositoryItem> Items { get; set; }  
+}
 
-    public class RepositoryItem
-    {
-        public string Sha { get; set; }
+public class RepositoryItem
+{
+    public string Sha { get; set; }
 
-        public string Path { get; set; }
-    }
+    public string Path { get; set; }
+    
+    [Display("Is folder")]
+    public bool IsFolder { get; set; }
 }
