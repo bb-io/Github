@@ -29,15 +29,15 @@ public class RepositoryActions : GithubActions
             .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
 
         string filename = Path.GetFileName(input.FilePath);
-        if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
-            mimeType = MediaTypeNames.Application.Octet;
+        // if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
+        //     mimeType = MediaTypeNames.Application.Octet;
 
         return new GetFileResponse
         {
             FilePath = input.FilePath,
             File = new File(fileData)
             {
-                ContentType = mimeType,
+                ContentType = MediaTypeNames.Application.Octet,
                 Name = filename
             },
             FileExtension = Path.GetExtension(input.FilePath)
