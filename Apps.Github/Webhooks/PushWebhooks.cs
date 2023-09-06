@@ -135,8 +135,9 @@ public class PushWebhooks
     }
     private bool IsFilePathMatchingPattern(string pattern, string filePath)
     {
-        Matcher matcher = new Matcher();
-        matcher.AddIncludePatterns(new[] { pattern });
+        var matcher = new Matcher();
+        matcher.AddInclude(pattern);
+        
         return matcher.Match(filePath).HasMatches;
     }
 }
