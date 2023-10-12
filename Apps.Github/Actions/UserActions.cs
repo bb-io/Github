@@ -12,20 +12,28 @@ namespace Apps.Github.Actions;
 public class UserActions
 {
     [Action("Get user by username", Description = "Get information about specific user")]
-    public UserDataResponse GetUserData(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<UserDataResponse> GetUserData(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UserDataRequest input)
     {
         var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var user = githubClient.User.Get(input.Username).Result;
+        var user = await githubClient.User.Get(input.Username);
         return new UserDataResponse(user);
     }
 
     [Action("Get user", Description = "Get information about specific user")]
-    public UserDataResponse GetUser(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<UserDataResponse> GetUser(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] [Display("Username")] [DataSource(typeof(UsersDataHandler))] string username)
     {
         var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var user = githubClient.User.Get(username).Result;
+        var user = await githubClient.User.Get(username);
+        return new UserDataResponse(user);
+    }
+
+    [Action("Get my user data", Description = "Get my user data")]
+    public async Task<UserDataResponse> GetMyUser(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
+    {
+        var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
+        var user = await githubClient.User.Current();
         return new UserDataResponse(user);
     }
 }
