@@ -21,6 +21,13 @@ public class RepositoryActions : GithubActions
     {
     }
 
+    [Action("Create new repository", Description = "Create new repository")]
+    public RepositoryDto CreateRepository([ActionParameter] CreateRepositoryRequest input)
+    {
+        var repository = Client.Repository.Create(input.GetNewRepositoryRequest()).Result;
+        return new RepositoryDto(repository);
+    }
+
     [Action("Get repository file", Description = "Get repository file by path")]
     public GetFileResponse GetFile([ActionParameter] GetFileRequest input)
     {
