@@ -1,5 +1,4 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using Octokit;
 
 namespace Apps.Github.Models.User.Responses;
 
