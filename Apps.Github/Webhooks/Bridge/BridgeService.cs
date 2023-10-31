@@ -6,13 +6,14 @@ namespace Apps.Github.Webhooks.Bridge;
 
 public class BridgeService
 {
-    public BridgeService(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders) 
+    private string BridgeServiceUrl { get; set; }
+    public BridgeService(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, string bridgeServiceUrl) 
     {
-
+        BridgeServiceUrl = bridgeServiceUrl;
     }
     public void Subscribe(string _event, string repositoryId, string url)
     {
-        var client = new RestClient(ApplicationConstants.BridgeServiceUrl);
+        var client = new RestClient(BridgeServiceUrl);
         var request = new RestRequest($"/{repositoryId}/{_event}", Method.Post);
         request.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
         request.AddBody(url);
@@ -21,7 +22,7 @@ public class BridgeService
 
     public void Unsubscribe(string _event, string repositoryId, string url)
     {
-        var client = new RestClient(ApplicationConstants.BridgeServiceUrl);
+        var client = new RestClient(BridgeServiceUrl);
         var requestGet = new RestRequest($"/{repositoryId}/{_event}", Method.Get);
         requestGet.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
         var webhooks = client.Get<List<BridgeGetResponse>>(requestGet);
