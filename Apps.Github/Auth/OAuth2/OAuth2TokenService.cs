@@ -5,13 +5,9 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Github.Auth.OAuth2;
 
-public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
+public class OAuth2TokenService : IOAuth2TokenService
 {
     private const string TokenUrl = "https://github.com/login/oauth/access_token";
-
-    public OAuth2TokenService(InvocationContext invocationContext) : base(invocationContext)
-    {
-    }
 
     public bool IsRefreshToken(Dictionary<string, string> values)
     {
@@ -39,7 +35,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
             { "client_id", ApplicationConstants.ClientId },
             { "client_secret", ApplicationConstants.ClientSecret },
             { "code", code },
-            { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
+            { "redirect_uri", $"{"https://bridge.blackbird.io/api"}/AuthorizationCode" },
         };
         return await RequestToken(bodyParameters, cancellationToken);
     }

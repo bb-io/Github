@@ -5,11 +5,11 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Github;
 
-public class GithubApplication : BaseInvocable, IApplication
+public class GithubApplication : IApplication
 {
     private readonly Dictionary<Type, object> _typesInstances;
 
-    public GithubApplication(InvocationContext invocationContext) : base(invocationContext)
+    public GithubApplication()
     {
         _typesInstances = CreateTypesInstances();
     }
@@ -33,8 +33,8 @@ public class GithubApplication : BaseInvocable, IApplication
     {
         return new Dictionary<Type, object>
         {
-            { typeof(IOAuth2AuthorizeService), new OAuth2AuthorizeService(InvocationContext) },
-            { typeof(IOAuth2TokenService), new OAuth2TokenService(InvocationContext) }
+            { typeof(IOAuth2AuthorizeService), new OAuth2AuthorizeService() },
+            { typeof(IOAuth2TokenService), new OAuth2TokenService() }
         };
     }
 }

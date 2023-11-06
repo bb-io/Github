@@ -5,24 +5,24 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace Apps.Github.Auth.OAuth2;
 
-public class OAuth2AuthorizeService : BaseInvocable, IOAuth2AuthorizeService
+public class OAuth2AuthorizeService : IOAuth2AuthorizeService
 {
-    public OAuth2AuthorizeService(InvocationContext invocationContext) : base(invocationContext)
+    public OAuth2AuthorizeService()
     {
     }
 
     public string GetAuthorizationUrl(Dictionary<string, string> values)
     {
-        string bridgeOauthUrl = $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/oauth";
+        string bridgeOauthUrl = $"{"https://bridge.blackbird.io/api"}/oauth";
         const string oauthUrl = "https://github.com/login/oauth/authorize";
         var parameters = new Dictionary<string, string>
         {
             { "client_id", ApplicationConstants.ClientId },
-            { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
+            { "redirect_uri", $"{"https://bridge.blackbird.io/api"}/AuthorizationCode" },
             { "scope", ApplicationConstants.Scope },
             { "state", values["state"] },
             { "authorization_url", oauthUrl},
-            { "actual_redirect_uri", InvocationContext.UriInfo.AuthorizationCodeRedirectUri.ToString() },
+            { "actual_redirect_uri", "https://sandbox.blackbird.io/api-rest/connections/AuthorizationCode" },
         };
         return QueryHelpers.AddQueryString(bridgeOauthUrl, parameters);
     }
