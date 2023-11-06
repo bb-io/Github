@@ -15,5 +15,6 @@ namespace Apps.Github
         public const string Scope = "#{APP_GITHUB_SCOPE}#";
 
         public const string BlackbirdToken = "#{APP_GITHUB_BLACKBIRD_TOKEN}#"; // bridge validates this token
+        
     }
 }
