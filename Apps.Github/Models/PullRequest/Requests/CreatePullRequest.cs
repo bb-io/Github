@@ -12,6 +12,8 @@ public class CreatePullRequest
 
     public string Title { get; set; }
 
+    public string? Description { get; set; }
+
     [Display("Head branch")]
     public string HeadBranch { get; set; }
 

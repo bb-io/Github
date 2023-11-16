@@ -11,5 +11,5 @@ public class MergePullRequest
     public string RepositoryId { get; set; }
 
     [Display("Pull request number")]
-    public int PullRequestNumber { get; set; }
+    public string PullRequestNumber { get; set; }
 }

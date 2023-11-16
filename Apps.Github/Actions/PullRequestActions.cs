@@ -38,6 +38,7 @@ public class PullRequestActions
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var pullRequest = new NewPullRequest(input.Title, input.HeadBranch, input.BaseBranch);
+        pullRequest.Body = input.Description;
         var pull = client.PullRequest.Create(long.Parse(input.RepositoryId), pullRequest).Result;
         return new PullRequestDto(pull);
     }
@@ -47,7 +48,7 @@ public class PullRequestActions
         [ActionParameter] Models.PullRequest.Requests.MergePullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        return client.PullRequest.Merge(long.Parse(input.RepositoryId), input.PullRequestNumber, new Octokit.MergePullRequest()).Result;
+        return client.PullRequest.Merge(long.Parse(input.RepositoryId), int.Parse(input.PullRequestNumber), new Octokit.MergePullRequest()).Result;
     }
 
     [Action("List pull request files", Description = "List pull request files")]
