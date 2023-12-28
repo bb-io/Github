@@ -4,11 +4,13 @@ using Apps.Github.Dtos;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
 using Apps.Github.Models.Respository.Requests;
-using File = Blackbird.Applications.Sdk.Common.Files.File;
 using System.Net.Mime;
+using Apps.GitHub;
 using Apps.Github.Actions.Base;
 using Apps.Github.Models.Commit.Responses;
+using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 
@@ -17,8 +19,12 @@ namespace Apps.Github.Actions;
 [ActionList]
 public class RepositoryActions : GithubActions
 {
-    public RepositoryActions(InvocationContext invocationContext) : base(invocationContext)
+    private readonly IFileManagementClient _fileManagementClient;
+    
+    public RepositoryActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
+        : base(invocationContext)
     {
+        _fileManagementClient = fileManagementClient;
     }
 
     [Action("Create new repository", Description = "Create new repository")]
@@ -35,18 +41,20 @@ public class RepositoryActions : GithubActions
         var fileData = Client.Repository.Content
             .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
 
-        string filename = Path.GetFileName(input.FilePath);
-        // if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
-        //     mimeType = MediaTypeNames.Application.Octet;
+        var filename = Path.GetFileName(input.FilePath);
+        if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
+            mimeType = MediaTypeNames.Application.Octet;
 
+        FileReference file;
+        using (var stream = new MemoryStream(fileData))
+        {
+            file = _fileManagementClient.UploadAsync(stream, mimeType, filename).Result;
+        }
+        
         return new GetFileResponse
         {
             FilePath = input.FilePath,
-            File = new File(fileData)
-            {
-                ContentType = MediaTypeNames.Application.Octet,
-                Name = filename
-            },
+            File = file,
             FileExtension = Path.GetExtension(input.FilePath)
         };
     }
@@ -71,11 +79,7 @@ public class RepositoryActions : GithubActions
             
             resultFiles.Add(new GithubFile()
             {
-                File = new(fileData.File.Bytes)
-                {
-                    Name = fileData.File.Name,
-                    ContentType = fileData.File.ContentType
-                },
+                File = fileData.File,
                 FilePath = fileData.FilePath
             });
         }
@@ -144,7 +148,7 @@ public class RepositoryActions : GithubActions
     public RepositoryContentPathsResponse ListAllRepositoryContent(
         [ActionParameter] ListAllRepositoryContentRequest input)
     {
-        var commits = new CommitActions(InvocationContext)
+        var commits = new CommitActions(InvocationContext, _fileManagementClient)
             .ListRepositoryCommits(new() { RepositoryId = input.RepositoryId });
         var tree = Client.Git.Tree.GetRecursive(long.Parse(input.RepositoryId), commits.Commits.First().Id)
             .Result;
@@ -175,11 +179,7 @@ public class RepositoryActions : GithubActions
             files.Add(new GithubFile
             {
                 FilePath = fileData.FilePath,
-                File = new(fileData.File.Bytes)
-                {
-                    Name = fileData.File.Name,
-                    ContentType = fileData.File.ContentType
-                }
+                File = fileData.File
             });
         }
 
