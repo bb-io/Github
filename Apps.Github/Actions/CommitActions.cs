@@ -5,14 +5,20 @@ using Apps.Github.Models.Commit.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 
 namespace Apps.Github.Actions;
 
 [ActionList]
 public class CommitActions : GithubActions
 {
-    public CommitActions(InvocationContext invocationContext) : base(invocationContext)
+    private readonly IFileManagementClient _fileManagementClient;
+    
+    public CommitActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient) 
+        : base(invocationContext)
     {
+        _fileManagementClient = fileManagementClient;
     }
 
     [Action("List commits", Description = "List respository commits")]
@@ -40,7 +46,7 @@ public class CommitActions : GithubActions
     [Action("Push file", Description = "Push file to repository")]
     public SmallCommitDto PushFile([ActionParameter] PushFileRequest input)
     {
-        var repContent = new RepositoryActions(InvocationContext).ListAllRepositoryContent(
+        var repContent = new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(
             new()
             {
                 RepositoryId = input.RepositoryId,
@@ -56,9 +62,12 @@ public class CommitActions : GithubActions
                 CommitMessage = input.CommitMessage
             });
         }
+        
+        var file = _fileManagementClient.DownloadAsync(input.File).Result;
+        var fileBytes = file.GetByteData().Result;
 
         var fileUpload =
-            new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File.Bytes), false);
+            new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), false);
         var pushFileResult = Client.Repository.Content
             .CreateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
         return new(pushFileResult.Commit);
@@ -68,9 +77,10 @@ public class CommitActions : GithubActions
     public SmallCommitDto UpdateFile([ActionParameter] UpdateFileRequest input)
     {
         var fileId = input.FileId ?? GetFileId(input.RepositoryId, input.DestinationFilePath);
-
-        var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(input.File.Bytes),
-            fileId, false);
+        var file = _fileManagementClient.DownloadAsync(input.File).Result;
+        var fileBytes = file.GetByteData().Result;
+        var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), fileId, 
+            false);
         fileUpload.Branch = input.BranchName;
         var pushFileResult = Client.Repository.Content
             .UpdateFile(long.Parse(input.RepositoryId), input.DestinationFilePath, fileUpload).Result;
@@ -89,7 +99,7 @@ public class CommitActions : GithubActions
 
     private string GetFileId(string repoId, string path)
     {
-        var repoContent = new RepositoryActions(InvocationContext).ListAllRepositoryContent(new()
+        var repoContent = new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(new()
         {
             RepositoryId = repoId
         });

@@ -1,5 +1,5 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using File = Blackbird.Applications.Sdk.Common.Files.File;
+using Blackbird.Applications.Sdk.Common.Files;
 
 namespace Apps.Github.Models.Respository.Responses;
 
@@ -9,7 +9,7 @@ public class GetFileResponse
     public string FilePath { get; set; }
 
     [Display("File")]
-    public File File { get; set; }
+    public FileReference File { get; set; }
 
     [Display("File extension (e.g \".txt\")")]
     public string FileExtension { get; set; }
