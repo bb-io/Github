@@ -76,7 +76,7 @@ public class PushWebhooks
         };
     }
 
-    [Webhook("On files added and modified", typeof(PushActionHandler), Description = "On files added and modified")]
+    [Webhook("On files added or modified", typeof(PushActionHandler), Description = "On files added or modified")]
     public async Task<WebhookResponse<FilesListResponse>> FilesAddedAndModifiedHandler(WebhookRequest webhookRequest,
         [WebhookParameter] FolderInput input)
     {

@@ -13,6 +13,7 @@ public class RepositoryDto
         CreatedAt = source.CreatedAt.DateTime;
     }
 
+    [Display("ID")]
     public string Id { get; set; }
 
     public string Name { get; set; }
@@ -20,5 +21,6 @@ public class RepositoryDto
     [Display("Created at")]
     public DateTime CreatedAt { get; set; }
 
+    [Display("Owner logged in?")]
     public string OwnerLogin { get; set; }
 }

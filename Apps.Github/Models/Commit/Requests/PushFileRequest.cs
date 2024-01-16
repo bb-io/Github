@@ -7,7 +7,7 @@ namespace Apps.Github.Models.Commit.Requests;
 
 public class PushFileRequest
 {
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set; }
 

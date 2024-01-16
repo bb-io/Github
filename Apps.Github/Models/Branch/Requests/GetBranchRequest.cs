@@ -6,7 +6,7 @@ namespace Apps.Github.Models.Branch.Requests;
 
 public class GetBranchRequest
 {
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set;}
     public string Name { get; set; }

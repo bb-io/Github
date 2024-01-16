@@ -9,7 +9,7 @@ public class GetAllFilesInFolderRequest
     [Display("Folder path (e.g. \"Folder1/Folder2\")")]
     public string FolderPath { get; set; }
 
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set; }
 }

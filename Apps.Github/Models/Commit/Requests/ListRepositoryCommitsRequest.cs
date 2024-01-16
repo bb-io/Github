@@ -6,7 +6,7 @@ namespace Apps.Github.Models.Commit.Requests;
 
 public class ListRepositoryCommitsRequest
 {
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set; }
 }
