@@ -87,14 +87,7 @@ public class RepositoryActions : GithubActions
         return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
     }
 
-    [Action("Get repository by name", Description = "Get repository info by owner and name")]
-    public RepositoryDto GetRepositoryByName([ActionParameter] GetRepositoryByNameRequest input)
-    {
-        var repository = Client.Repository.Get(input.RepositoryOwner, input.RepositoryName).Result;
-        return new RepositoryDto(repository);
-    }
-
-    [Action("Get repository by id", Description = "Get repository info by id")]
+    [Action("Get repository", Description = "Get repository info")]
     public RepositoryDto GetRepositoryById([ActionParameter] GetRepositoryByIdRequest input)
     {
         var repository = Client.Repository.Get(long.Parse(input.RepositoryId)).Result;

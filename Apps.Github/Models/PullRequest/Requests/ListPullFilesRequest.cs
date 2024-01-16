@@ -6,7 +6,7 @@ namespace Apps.Github.Models.PullRequest.Requests;
 
 public class ListPullFilesRequest
 {
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set; }
 

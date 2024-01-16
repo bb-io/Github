@@ -6,7 +6,7 @@ namespace Apps.Github.Models.Respository.Requests;
 
 public class GetFileRequest
 {
-    [Display("Repository")]
+    [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
     public string RepositoryId { get; set; }
 
