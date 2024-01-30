@@ -64,7 +64,7 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetAllFilesInFolderRequest input)
     {
         var resultFiles = new List<GithubFile>();
-        var content = ListRepositoryContent(Creds, new RepositoryContentRequest
+        var content = ListRepositoryContent(new RepositoryContentRequest
         {
             Path = input.FolderPath,
             RepositoryId = input.RepositoryId,
