@@ -88,7 +88,7 @@ public class RepositoryActions : GithubActions
     }
 
     [Action("Get repository", Description = "Get repository info")]
-    public RepositoryDto GetRepositoryById([ActionParameter] GetRepositoryByIdRequest input)
+    public RepositoryDto GetRepositoryById([ActionParameter] GetRepositoryRequest input)
     {
         var repository = Client.Repository.Get(long.Parse(input.RepositoryId)).Result;
         return new RepositoryDto(repository);

@@ -1,6 +1,7 @@
 ﻿using Apps.Github.Dtos;
 using Apps.Github.Models.Branch.Requests;
 using Apps.Github.Models.Branch.Responses;
+using Apps.Github.Models.Respository.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -13,7 +14,7 @@ public class BranchActions
 {
     [Action("List branches", Description = "List respository branches")]
     public ListRepositoryBranchesResponse ListRepositoryBranches(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] ListRepositoryBranchesRequest input)
+        [ActionParameter] GetRepositoryRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var branches = client.Repository.Branch.GetAll(long.Parse(input.RepositoryId)).Result;
@@ -25,20 +26,22 @@ public class BranchActions
 
     [Action("Get branch", Description = "Get branch by name")]
     public BranchDto GetBranch(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetBranchRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var branch = client.Repository.Branch.Get(long.Parse(input.RepositoryId), input.Name).Result;
+        var branch = client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.Name).Result;
         return new BranchDto(branch);
     }
 
     [Action("Merge branch", Description = "Merge branch")]
     public MergeDto MergeBranch(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] MergeBranchRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var mergeRequest = new NewMerge(input.BaseBranch, input.HeadBranch) { CommitMessage = input.CommitMessage };
-        var merge = client.Repository.Merging.Create(long.Parse(input.RepositoryId), mergeRequest).Result;
+        var merge = client.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest).Result;
         return new MergeDto(merge);
     }
 }
