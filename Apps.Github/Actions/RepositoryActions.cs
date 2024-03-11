@@ -118,7 +118,7 @@ public class RepositoryActions : GithubActions
     [Action("List repository folder content", Description = "List repository content by specified path")]
     public RepositoryContentResponse ListRepositoryContent([ActionParameter] RepositoryContentRequest input)
     {
-        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/")
+        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/" )
             .Result;
         return new()
         {

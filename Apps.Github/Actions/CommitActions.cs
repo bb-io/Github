@@ -8,6 +8,9 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Apps.Github.Models.Respository.Requests;
+using Apps.Github.Models.Branch.Requests;
+using Apps.GitHub.Models.Branch.Requests;
+using Octokit;
 
 namespace Apps.Github.Actions;
 
@@ -27,7 +30,6 @@ public class CommitActions : GithubActions
         [ActionParameter] GetRepositoryRequest input)
     {
         var commits = Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId)).Result;
-
         return new()
         {
             Commits = commits.Select(c => new SmallCommitDto(c))
@@ -49,6 +51,7 @@ public class CommitActions : GithubActions
     [Action("Push file", Description = "Push file to repository")]
     public SmallCommitDto PushFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] PushFileRequest input)
     {
         var repContent = new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(
@@ -59,10 +62,8 @@ public class CommitActions : GithubActions
         if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
         {
             return UpdateFile(
-                new() 
-                { 
-                    RepositoryId = repositoryRequest.RepositoryId
-                },
+                repositoryRequest,
+                branchRequest,
                 new()
                 {
                     FileId = repContent.Items.First(p => p.Path == input.DestinationFilePath).Sha,
@@ -76,7 +77,7 @@ public class CommitActions : GithubActions
         var fileBytes = file.GetByteData().Result;
 
         var fileUpload =
-            new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), false);
+            new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), branchRequest.Name, false);
         var pushFileResult = Client.Repository.Content
             .CreateFile(long.Parse(repositoryRequest.RepositoryId), input.DestinationFilePath, fileUpload).Result;
         return new(pushFileResult.Commit);
@@ -85,12 +86,13 @@ public class CommitActions : GithubActions
     [Action("Update file", Description = "Update file in repository")]
     public SmallCommitDto UpdateFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] UpdateFileRequest input)
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] Models.Commit.Requests.UpdateFileRequest input)
     {
         var fileId = input.FileId ?? GetFileId(repositoryRequest.RepositoryId, input.DestinationFilePath);
         var file = _fileManagementClient.DownloadAsync(input.File).Result;
         var fileBytes = file.GetByteData().Result;
-        var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), fileId, 
+        var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), fileId, branchRequest.Name, 
             false);
         fileUpload.Branch = input.BranchName;
         var pushFileResult = Client.Repository.Content
@@ -102,11 +104,12 @@ public class CommitActions : GithubActions
     [Action("Delete file", Description = "Delete file from repository")]
     public Task DeleteFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] DeleteFileRequest input)
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] Models.Commit.Requests.DeleteFileRequest input)
     {
         var fileId = GetFileId(repositoryRequest.RepositoryId, input.FilePath);
 
-        var fileDelete = new Octokit.DeleteFileRequest(input.CommitMessage, fileId);
+        var fileDelete = new Octokit.DeleteFileRequest(input.CommitMessage, fileId, branchRequest.Name);
         return Client.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), input.FilePath, fileDelete);
     }
 

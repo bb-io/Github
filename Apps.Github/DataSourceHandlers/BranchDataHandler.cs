@@ -28,6 +28,9 @@ namespace Apps.GitHub.DataSourceHandlers
             DataSourceContext context,
             CancellationToken cancellationToken)
         {
+            if (RepositoryRequest == null || string.IsNullOrWhiteSpace(RepositoryRequest.RepositoryId))
+                throw new ArgumentException("Please, specify repository first");
+
             var branches = await new BlackbirdGithubClient(Creds).Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId));
 
             return branches
