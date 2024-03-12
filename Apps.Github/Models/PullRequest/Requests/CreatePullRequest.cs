@@ -5,12 +5,7 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 namespace Apps.Github.Models.PullRequest.Requests;
 
 public class CreatePullRequest
-{
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
-    public string Title { get; set; }
+{    public string Title { get; set; }
 
     public string? Description { get; set; }
 

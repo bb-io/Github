@@ -4,7 +4,7 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.Github.Models.Respository.Requests;
 
-public class GetRepositoryByIdRequest
+public class GetRepositoryRequest
 {
     [Display("Repository ID")]
     [DataSource(typeof(RepositoryDataHandler))]
