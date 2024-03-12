@@ -94,7 +94,6 @@ public class CommitActions : GithubActions
         var fileBytes = file.GetByteData().Result;
         var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), fileId, branchRequest.Name, 
             false);
-        fileUpload.Branch = input.BranchName;
         var pushFileResult = Client.Repository.Content
             .UpdateFile(long.Parse(repositoryRequest.RepositoryId), input.DestinationFilePath, fileUpload).Result;
 
