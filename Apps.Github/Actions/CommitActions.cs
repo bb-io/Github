@@ -27,9 +27,10 @@ public class CommitActions : GithubActions
 
     [Action("List commits", Description = "List respository commits")]
     public ListRepositoryCommitsResponse ListRepositoryCommits(
-        [ActionParameter] GetRepositoryRequest input)
+        [ActionParameter] GetRepositoryRequest input,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
     {
-        var commits = Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId)).Result;
+        var commits = Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), new CommitRequest() { Sha = branchRequest.Name}).Result;
         return new()
         {
             Commits = commits.Select(c => new SmallCommitDto(c))
@@ -58,7 +59,7 @@ public class CommitActions : GithubActions
             new()
             {
                 RepositoryId = repositoryRequest.RepositoryId,
-            });
+            }, branchRequest);
         if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
         {
             return UpdateFile(
@@ -89,7 +90,7 @@ public class CommitActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] Models.Commit.Requests.UpdateFileRequest input)
     {
-        var fileId = input.FileId ?? GetFileId(repositoryRequest.RepositoryId, input.DestinationFilePath);
+        var fileId = input.FileId ?? GetFileId(repositoryRequest.RepositoryId, input.DestinationFilePath, branchRequest);
         var file = _fileManagementClient.DownloadAsync(input.File).Result;
         var fileBytes = file.GetByteData().Result;
         var fileUpload = new Octokit.UpdateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), fileId, branchRequest.Name, 
@@ -106,18 +107,18 @@ public class CommitActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] Models.Commit.Requests.DeleteFileRequest input)
     {
-        var fileId = GetFileId(repositoryRequest.RepositoryId, input.FilePath);
+        var fileId = GetFileId(repositoryRequest.RepositoryId, input.FilePath, branchRequest);
 
         var fileDelete = new Octokit.DeleteFileRequest(input.CommitMessage, fileId, branchRequest.Name);
         return Client.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), input.FilePath, fileDelete);
     }
 
-    private string GetFileId(string repoId, string path)
+    private string GetFileId(string repoId, string path, GetOptionalBranchRequest branchRequest)
     {
         var repoContent = new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(new()
         {
             RepositoryId = repoId
-        });
+        }, branchRequest);
 
         return repoContent.Items.First(x => x.Path == path).Sha;
     }

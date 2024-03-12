@@ -13,6 +13,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
+using Apps.GitHub.Models.Branch.Requests;
 
 namespace Apps.Github.Actions;
 
@@ -118,7 +119,7 @@ public class RepositoryActions : GithubActions
     [Action("List repository folder content", Description = "List repository content by specified path")]
     public RepositoryContentResponse ListRepositoryContent([ActionParameter] RepositoryContentRequest input)
     {
-        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/" )
+        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/")
             .Result;
         return new()
         {
@@ -137,11 +138,12 @@ public class RepositoryActions : GithubActions
 
     [Action("List all repository content", Description = "List all repository content (paths)")]
     public RepositoryContentPathsResponse ListAllRepositoryContent(
-        [ActionParameter] ListAllRepositoryContentRequest input)
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
     {
         var commits = new CommitActions(InvocationContext, _fileManagementClient)
-            .ListRepositoryCommits(new() { RepositoryId = input.RepositoryId });
-        var tree = Client.Git.Tree.GetRecursive(long.Parse(input.RepositoryId), commits.Commits.First().Id)
+            .ListRepositoryCommits(repositoryRequest, branchRequest);
+        var tree = Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), commits.Commits.First().Id)
             .Result;
         var paths = tree.Tree.Select(x => new RepositoryItem
         {
