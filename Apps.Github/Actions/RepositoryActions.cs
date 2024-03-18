@@ -81,7 +81,7 @@ public class RepositoryActions : GithubActions
             resultFiles.Add(new GithubFile()
             {
                 File = fileData.File,
-                FilePath = fileData.FilePath
+                FilePath = file.Path
             });
         }
 
