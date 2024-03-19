@@ -14,6 +14,7 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 using Apps.GitHub.Models.Branch.Requests;
+using Apps.Github.Models.Branch.Requests;
 
 namespace Apps.Github.Actions;
 
@@ -62,20 +63,18 @@ public class RepositoryActions : GithubActions
 
     [Action("Get all files in folder", Description = "Get all files in folder")]
     public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(
-        [ActionParameter] GetAllFilesInFolderRequest input)
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] FolderContentRequest folderContentRequest)
     {
         var resultFiles = new List<GithubFile>();
-        var content = ListRepositoryContent(new RepositoryContentRequest
-        {
-            Path = input.FolderPath,
-            RepositoryId = input.RepositoryId,
-        });
+        var content = ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
         foreach (var file in content.Content)
         {
             var fileData = GetFile(new()
             {
                 FilePath = file.Path,
-                RepositoryId = input.RepositoryId
+                RepositoryId = repositoryRequest.RepositoryId
             });
             
             resultFiles.Add(new GithubFile()
@@ -84,7 +83,6 @@ public class RepositoryActions : GithubActions
                 FilePath = file.Path
             });
         }
-
         return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
     }
 
@@ -117,9 +115,12 @@ public class RepositoryActions : GithubActions
     }
 
     [Action("List repository folder content", Description = "List repository content by specified path")]
-    public RepositoryContentResponse ListRepositoryContent([ActionParameter] RepositoryContentRequest input)
+    public RepositoryContentResponse ListRepositoryContent(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] FolderContentRequest input)
     {
-        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/")
+        var content = Client.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/", branchRequest.Name)
             .Result;
         return new()
         {
