@@ -13,12 +13,11 @@ public class BaseWebhookHandler : BaseInvocable, IWebhookEventHandler
 
     private string RepositoryId { get; set; }
 
-    public BaseWebhookHandler(InvocationContext invocationContext, WebhookInput input, string subEvent) : base(invocationContext)
+    public BaseWebhookHandler(InvocationContext invocationContext, WebhookRepositoryInput input, string subEvent) : base(invocationContext)
     {
         SubscriptionEvent = subEvent;
         RepositoryId = input.RepositoryId;
     }
-
 
     public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
         Dictionary<string, string> values)
