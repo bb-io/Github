@@ -16,7 +16,7 @@ public class PushWebhooks
     {
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref) return GeneratePreflight<PushPayloadFlat>();
+        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<PushPayloadFlat>();
 
         return new WebhookResponse<PushPayloadFlat>
         {
@@ -31,7 +31,7 @@ public class PushWebhooks
     {
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref) return GeneratePreflight<FilesListResponse>();
+        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
 
         var addedFiles = new List<FilePathObj>();
         data.Commits.ForEach(c => addedFiles.AddRange(c.Added.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
@@ -56,7 +56,7 @@ public class PushWebhooks
     {
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref) return GeneratePreflight<FilesListResponse>();
+        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
 
         var modifiedFiles = new List<FilePathObj>();
         data.Commits.ForEach(c => modifiedFiles.AddRange(c.Modified.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
@@ -81,7 +81,7 @@ public class PushWebhooks
     {
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref) return GeneratePreflight<FilesListResponse>();
+        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
 
         var files = new List<FilePathObj>();
         data.Commits.ForEach(c => {
@@ -110,7 +110,7 @@ public class PushWebhooks
     {
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref) return GeneratePreflight<FilesListResponse>();
+        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
 
         var removedFiles = new List<FilePathObj>();
         data.Commits.ForEach(c => removedFiles.AddRange(c.Removed.Where(f => input.FolderPath is null || IsFilePathMatchingPattern(input.FolderPath, f))
