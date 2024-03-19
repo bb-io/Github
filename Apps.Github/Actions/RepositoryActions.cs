@@ -66,13 +66,13 @@ public class RepositoryActions : GithubActions
     }
 
     [Action("Get all files in folder", Description = "Get all files in folder")]
-    public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(
+    public async Task<GetRepositoryFilesFromFilepathsResponse> GetAllFilesInFolder(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] FolderContentRequest folderContentRequest)
     {
         var resultFiles = new List<GithubFile>();
-        var content = ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
+        var content = await ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
         foreach (var file in content.Content)
         {
             var fileData = GetFile(repositoryRequest, branchRequest, new GetFileRequest() { FilePath = file.Path});         
@@ -160,16 +160,18 @@ public class RepositoryActions : GithubActions
 
     [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
     public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
     {
         var files = new List<GithubFile>();
         foreach (var filePath in input.Files)
         {
-            var fileData = GetFile(new GetFileRequest
-            {
-                RepositoryId = input.RepositoryId,
-                FilePath = filePath
-            });
+            var fileData = GetFile(
+                repositoryRequest,
+                branchRequest,
+                new GetFileRequest { FilePath = filePath });
+
             files.Add(new GithubFile
             {
                 FilePath = fileData.FilePath,
