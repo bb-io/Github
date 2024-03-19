@@ -6,11 +6,6 @@ namespace Apps.Github.Models.Respository.Requests;
 
 public class GetRepositoryFilesFromFilepathsRequest
 {
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
-
     [Display("File paths array (only from webhooks)")]
     public IEnumerable<string> Files { get; set; }
 }
