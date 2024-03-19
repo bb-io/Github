@@ -4,11 +4,8 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.Github.Models.Respository.Requests;
 
-public class RepositoryContentRequest
+public class FolderContentRequest
 {
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
+    [Display("Folder path (e.g. \"Folder1/Folder2\")")]
     public string? Path { get; set; }
 }
