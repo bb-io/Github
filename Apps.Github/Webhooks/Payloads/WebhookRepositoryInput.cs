@@ -4,7 +4,7 @@ using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.Github.Webhooks.Payloads;
 
-public class WebhookInput
+public class WebhookRepositoryInput
 {
     [Display("Repository")]
     [DataSource(typeof(RepositoryDataHandler))]
