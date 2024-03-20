@@ -75,6 +75,8 @@ public class RepositoryActions : GithubActions
         var content = await ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
         foreach (var file in content.Content)
         {
+            if (file.Type.Value != Octokit.ContentType.File)
+                continue;
             var fileData = GetFile(repositoryRequest, branchRequest, new GetFileRequest() { FilePath = file.Path});         
             resultFiles.Add(new GithubFile()
             {
