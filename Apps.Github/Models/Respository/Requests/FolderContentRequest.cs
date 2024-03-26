@@ -6,6 +6,10 @@ namespace Apps.Github.Models.Respository.Requests;
 
 public class FolderContentRequest
 {
+    public FolderContentRequest()
+    {
+    }
+
     public FolderContentRequest(string? path, bool? includeSubfolders)
     {
         Path = path;
