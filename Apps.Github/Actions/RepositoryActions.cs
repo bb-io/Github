@@ -15,6 +15,7 @@ using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 using Apps.GitHub.Models.Branch.Requests;
 using Apps.Github.Models.Branch.Requests;
+using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -121,9 +122,17 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] FolderContentRequest input)
     {
-        var content = string.IsNullOrEmpty(branchRequest.Name) ?
+        List<RepositoryContent> content = (string.IsNullOrEmpty(branchRequest.Name) ?
             await Client.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/") :
-            await Client.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/", branchRequest.Name);
+            await Client.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/", branchRequest.Name)).ToList();
+        if (input.IncludeSubfolders.HasValue && input.IncludeSubfolders.Value)
+        {
+            foreach(var folder in content.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
+            {
+                var innerContent = await ListRepositoryContent(repositoryRequest, branchRequest, new FolderContentRequest($"{input.Path.TrimEnd('/')}/{folder.Name}", true));
+                content.AddRange(innerContent.Content);
+            }
+        }      
         return new()
         {
             Content = content
