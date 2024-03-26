@@ -9,9 +9,9 @@ public class RepositoryContentPathsResponse
 
 public class RepositoryItem
 {
-    public string Sha { get; set; }
-
     public string Path { get; set; }
+
+    public string Sha { get; set; }
     
     [Display("Is folder")]
     public bool IsFolder { get; set; }

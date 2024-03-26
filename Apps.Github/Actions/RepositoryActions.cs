@@ -47,6 +47,8 @@ public class RepositoryActions : GithubActions
         var fileData = string.IsNullOrEmpty(branchRequest.Name) ?
             Client.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath).Result :
             Client.Repository.Content.GetRawContentByRef(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath, branchRequest.Name).Result;
+        if(fileData == null)
+            throw new ArgumentException($"File does not exist ({getFileRequest.FilePath})");
 
         var filename = Path.GetFileName(getFileRequest.FilePath);
         if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
@@ -176,7 +178,7 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
     {
         var files = new List<GithubFile>();
-        foreach (var filePath in input.Files)
+        foreach (var filePath in input.FilePaths)
         {
             var fileData = GetFile(
                 repositoryRequest,
