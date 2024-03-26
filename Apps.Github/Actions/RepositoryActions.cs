@@ -129,7 +129,7 @@ public class RepositoryActions : GithubActions
         {
             foreach(var folder in content.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
             {
-                var innerContent = await ListRepositoryContent(repositoryRequest, branchRequest, new FolderContentRequest($"{input.Path.TrimEnd('/')}/{folder.Name}", true));
+                var innerContent = await ListRepositoryContent(repositoryRequest, branchRequest, new FolderContentRequest($"{input.Path?.TrimEnd('/')}/{folder.Name}", true));
                 content.AddRange(innerContent.Content);
             }
         }      
