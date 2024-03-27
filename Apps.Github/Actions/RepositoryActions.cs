@@ -47,6 +47,8 @@ public class RepositoryActions : GithubActions
         var fileData = string.IsNullOrEmpty(branchRequest.Name) ?
             Client.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath).Result :
             Client.Repository.Content.GetRawContentByRef(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath, branchRequest.Name).Result;
+        if(fileData == null)
+            throw new ArgumentException($"File does not exist ({getFileRequest.FilePath})");
 
         var filename = Path.GetFileName(getFileRequest.FilePath);
         if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
@@ -169,6 +171,27 @@ public class RepositoryActions : GithubActions
         };
     }
 
+    [Action("List all repository folders", Description = "List all repository folders")]
+    public RepositoryContentPathsResponse ListAllRepositoryFolder(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
+    {
+        var commits = new CommitActions(InvocationContext, _fileManagementClient)
+            .ListRepositoryCommits(repositoryRequest, branchRequest);
+        var tree = Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), commits.Commits.First().Id)
+            .Result;
+        var paths = tree.Tree.Where(x => x.Type == TreeType.Tree).Select(x => new RepositoryItem
+        {
+            Sha = x.Sha,
+            Path = x.Path,
+            IsFolder = x.Type == TreeType.Tree
+        });
+        return new RepositoryContentPathsResponse
+        {
+            Items = paths
+        };
+    }
+
     [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
     public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -176,7 +199,7 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
     {
         var files = new List<GithubFile>();
-        foreach (var filePath in input.Files)
+        foreach (var filePath in input.FilePaths)
         {
             var fileData = GetFile(
                 repositoryRequest,
