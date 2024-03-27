@@ -171,6 +171,27 @@ public class RepositoryActions : GithubActions
         };
     }
 
+    [Action("List all repository folders", Description = "List all repository folders")]
+    public RepositoryContentPathsResponse ListAllRepositoryFolder(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
+    {
+        var commits = new CommitActions(InvocationContext, _fileManagementClient)
+            .ListRepositoryCommits(repositoryRequest, branchRequest);
+        var tree = Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), commits.Commits.First().Id)
+            .Result;
+        var paths = tree.Tree.Where(x => x.Type == TreeType.Tree).Select(x => new RepositoryItem
+        {
+            Sha = x.Sha,
+            Path = x.Path,
+            IsFolder = x.Type == TreeType.Tree
+        });
+        return new RepositoryContentPathsResponse
+        {
+            Items = paths
+        };
+    }
+
     [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
     public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
