@@ -8,5 +8,5 @@ public class PullRequestOpenHandler : BaseWebhookHandler
 {
     const string SubscriptionEvent = "pull_request";
 
-    public PullRequestOpenHandler(InvocationContext invocationContext, [WebhookParameter] WebhookInput input) : base(invocationContext, input, SubscriptionEvent) { }
+    public PullRequestOpenHandler(InvocationContext invocationContext, [WebhookParameter] WebhookRepositoryInput input) : base(invocationContext, input, SubscriptionEvent) { }
 }

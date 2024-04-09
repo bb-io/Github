@@ -6,10 +6,6 @@ namespace Apps.Github.Models.Commit.Requests;
 
 public class DeleteFileRequest
 {
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
     [Display("File path")]
     public string FilePath { get; set; }
 

@@ -7,10 +7,6 @@ namespace Apps.Github.Models.Commit.Requests;
 
 public class PushFileRequest
 {
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
     [Display("Destination file path (e.g. \"Test/testFile.txt\")")]
     public string DestinationFilePath { get; set; }
 

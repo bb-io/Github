@@ -6,10 +6,6 @@ namespace Apps.Github.Models.Branch.Requests;
 
 public class MergeBranchRequest
 {
-    [Display("Repository ID")]
-    [DataSource(typeof(RepositoryDataHandler))]
-    public string RepositoryId { get; set; }
-
     [Display("Base branch")]
     public string BaseBranch { get; set; }
 
