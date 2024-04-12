@@ -2,6 +2,8 @@
 using Apps.Github.Models.Branch.Requests;
 using Apps.Github.Models.Branch.Responses;
 using Apps.Github.Models.Respository.Requests;
+using Apps.Github.Webhooks.Payloads;
+using Apps.GitHub.Models.Branch.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -43,5 +45,16 @@ public class BranchActions
         var mergeRequest = new NewMerge(input.BaseBranch, input.HeadBranch) { CommitMessage = input.CommitMessage };
         var merge = client.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest).Result;
         return new MergeDto(merge);
+    }
+
+    [Action("Create branch", Description = "Create branch")]
+    public async Task<BranchDto> CreateBranch(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] CreateBranchRequest input)
+    {
+        var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
+        var master = await client.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId), $"heads/{input.BaseBranchName}");
+        await client.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId), new NewReference("refs/heads/" + input.NewBranchName, master.Object.Sha));
+        return GetBranch(authenticationCredentialsProviders, repositoryRequest, new GetBranchRequest() { Name = input.NewBranchName });
     }
 }
