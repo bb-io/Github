@@ -8,5 +8,5 @@ public class PushActionHandler : BaseWebhookHandler
 {
     const string SubscriptionEvent = "push";
 
-    public PushActionHandler(InvocationContext invocationContext, [WebhookParameter] WebhookInput input) : base(invocationContext, input, SubscriptionEvent) { }
+    public PushActionHandler(InvocationContext invocationContext, [WebhookParameter(true)] WebhookRepositoryInput input) : base(invocationContext, input, SubscriptionEvent) { }
 }

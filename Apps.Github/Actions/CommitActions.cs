@@ -49,7 +49,7 @@ public class CommitActions : GithubActions
         return new(commit);
     }
 
-    [Action("Push file", Description = "Push file to repository")]
+    [Action("Create or update file", Description = "Create or update file")]
     public SmallCommitDto PushFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,

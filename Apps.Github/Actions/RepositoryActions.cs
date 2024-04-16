@@ -14,6 +14,8 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 using Apps.GitHub.Models.Branch.Requests;
+using Apps.Github.Models.Branch.Requests;
+using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -36,13 +38,19 @@ public class RepositoryActions : GithubActions
     }
 
     [Action("Get repository file", Description = "Get repository file by path")]
-    public GetFileResponse GetFile([ActionParameter] GetFileRequest input)
+    public GetFileResponse GetFile(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] GetFileRequest getFileRequest)
     {
-        var repoInfo = GetRepositoryById(new() { RepositoryId = input.RepositoryId });
-        var fileData = Client.Repository.Content
-            .GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, input.FilePath).Result;
+        var repoInfo = GetRepositoryById(repositoryRequest);
+        var fileData = string.IsNullOrEmpty(branchRequest.Name) ?
+            Client.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath).Result :
+            Client.Repository.Content.GetRawContentByRef(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath, branchRequest.Name).Result;
+        if(fileData == null)
+            throw new ArgumentException($"File does not exist ({getFileRequest.FilePath})");
 
-        var filename = Path.GetFileName(input.FilePath);
+        var filename = Path.GetFileName(getFileRequest.FilePath);
         if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
             mimeType = MediaTypeNames.Application.Octet;
 
@@ -54,37 +62,31 @@ public class RepositoryActions : GithubActions
         
         return new GetFileResponse
         {
-            FilePath = input.FilePath,
+            FilePath = getFileRequest.FilePath,
             File = file,
-            FileExtension = Path.GetExtension(input.FilePath)
+            FileExtension = Path.GetExtension(getFileRequest.FilePath)
         };
     }
 
     [Action("Get all files in folder", Description = "Get all files in folder")]
-    public GetRepositoryFilesFromFilepathsResponse GetAllFilesInFolder(
-        [ActionParameter] GetAllFilesInFolderRequest input)
+    public async Task<GetRepositoryFilesFromFilepathsResponse> GetAllFilesInFolder(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] FolderContentRequest folderContentRequest)
     {
         var resultFiles = new List<GithubFile>();
-        var content = ListRepositoryContent(new RepositoryContentRequest
-        {
-            Path = input.FolderPath,
-            RepositoryId = input.RepositoryId,
-        });
+        var content = await ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
         foreach (var file in content.Content)
         {
-            var fileData = GetFile(new()
-            {
-                FilePath = file.Path,
-                RepositoryId = input.RepositoryId
-            });
-            
+            if (file.Type.Value != Octokit.ContentType.File)
+                continue;
+            var fileData = GetFile(repositoryRequest, branchRequest, new GetFileRequest() { FilePath = file.Path});         
             resultFiles.Add(new GithubFile()
             {
                 File = fileData.File,
                 FilePath = file.Path
             });
         }
-
         return new GetRepositoryFilesFromFilepathsResponse { Files = resultFiles };
     }
 
@@ -117,10 +119,22 @@ public class RepositoryActions : GithubActions
     }
 
     [Action("List repository folder content", Description = "List repository content by specified path")]
-    public RepositoryContentResponse ListRepositoryContent([ActionParameter] RepositoryContentRequest input)
+    public async Task<RepositoryContentResponse> ListRepositoryContent(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] FolderContentRequest input)
     {
-        var content = Client.Repository.Content.GetAllContents(long.Parse(input.RepositoryId), input.Path ?? "/")
-            .Result;
+        List<RepositoryContent> content = (string.IsNullOrEmpty(branchRequest.Name) ?
+            await Client.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/") :
+            await Client.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId), input.Path ?? "/", branchRequest.Name)).ToList();
+        if (input.IncludeSubfolders.HasValue && input.IncludeSubfolders.Value)
+        {
+            foreach(var folder in content.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
+            {
+                var innerContent = await ListRepositoryContent(repositoryRequest, branchRequest, new FolderContentRequest($"{input.Path?.TrimEnd('/')}/{folder.Name}", true));
+                content.AddRange(innerContent.Content);
+            }
+        }      
         return new()
         {
             Content = content
@@ -157,18 +171,41 @@ public class RepositoryActions : GithubActions
         };
     }
 
+    [Action("List all repository folders", Description = "List all repository folders")]
+    public RepositoryContentPathsResponse ListAllRepositoryFolder(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
+    {
+        var commits = new CommitActions(InvocationContext, _fileManagementClient)
+            .ListRepositoryCommits(repositoryRequest, branchRequest);
+        var tree = Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), commits.Commits.First().Id)
+            .Result;
+        var paths = tree.Tree.Where(x => x.Type == TreeType.Tree).Select(x => new RepositoryItem
+        {
+            Sha = x.Sha,
+            Path = x.Path,
+            IsFolder = x.Type == TreeType.Tree
+        });
+        return new RepositoryContentPathsResponse
+        {
+            Items = paths
+        };
+    }
+
     [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
     public GetRepositoryFilesFromFilepathsResponse GetRepositoryFilesFromFilepaths(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
     {
         var files = new List<GithubFile>();
-        foreach (var filePath in input.Files)
+        foreach (var filePath in input.FilePaths)
         {
-            var fileData = GetFile(new GetFileRequest
-            {
-                RepositoryId = input.RepositoryId,
-                FilePath = filePath
-            });
+            var fileData = GetFile(
+                repositoryRequest,
+                branchRequest,
+                new GetFileRequest { FilePath = filePath });
+
             files.Add(new GithubFile
             {
                 FilePath = fileData.FilePath,
