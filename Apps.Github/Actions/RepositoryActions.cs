@@ -106,6 +106,10 @@ public class RepositoryActions : GithubActions
             {
                 continue;
             }
+            else if(file.FileStream.Length == 0)
+            {
+                continue;
+            }
             var filename = Path.GetFileName(file.Path);
             if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
                 mimeType = MediaTypeNames.Application.Octet;
