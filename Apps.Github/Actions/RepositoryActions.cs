@@ -92,14 +92,23 @@ public class RepositoryActions : GithubActions
         }
         foreach (var file in filesFromZip)
         {
-            if(!string.IsNullOrEmpty(folderContentRequest.Path))
+            file.Path = file.Path.Substring(file.Path.IndexOf('/') + 1);
+            var includeSubFolders = folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value;
+            if (!string.IsNullOrEmpty(folderContentRequest.Path))
             {
-                var includeSubFolders = folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value;
                 if ((includeSubFolders && !file.Path.StartsWith(folderContentRequest.Path)) ||
-                    (!includeSubFolders && Path.GetDirectoryName(file.Path).Trim('/') != folderContentRequest.Path.Trim('/')))
+                    (!includeSubFolders && Path.GetDirectoryName(file.Path).TrimStart('\\').Replace('\\', '/') != folderContentRequest.Path.Trim('/')))
                 {
                     continue;
                 }
+            }
+            else if(!includeSubFolders && !string.IsNullOrEmpty(Path.GetDirectoryName(file.Path)))
+            {
+                continue;
+            }
+            else if(file.FileStream.Length == 0)
+            {
+                continue;
             }
             var filename = Path.GetFileName(file.Path);
             if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
