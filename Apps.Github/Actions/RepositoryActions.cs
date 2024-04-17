@@ -94,7 +94,11 @@ public class RepositoryActions : GithubActions
         {
             file.Path = file.Path.Substring(file.Path.IndexOf('/') + 1);
             var includeSubFolders = folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value;
-            if (!string.IsNullOrEmpty(folderContentRequest.Path))
+            if (file.FileStream.Length == 0)
+            {
+                continue;
+            }
+            else if (!string.IsNullOrEmpty(folderContentRequest.Path))
             {
                 if ((includeSubFolders && !file.Path.StartsWith(folderContentRequest.Path)) ||
                     (!includeSubFolders && Path.GetDirectoryName(file.Path).TrimStart('\\').Replace('\\', '/') != folderContentRequest.Path.Trim('/')))
@@ -103,10 +107,6 @@ public class RepositoryActions : GithubActions
                 }
             }
             else if(!includeSubFolders && !string.IsNullOrEmpty(Path.GetDirectoryName(file.Path)))
-            {
-                continue;
-            }
-            else if(file.FileStream.Length == 0)
             {
                 continue;
             }
@@ -257,7 +257,8 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter][Display("Branch name")] string branchNameRequest)
     {
-        return Client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), branchNameRequest).Result != null;
+        var branches = Client.Repository.Branch.GetAll(long.Parse(repositoryRequest.RepositoryId)).Result;
+        return branches.Any(x => x.Name == branchNameRequest);
     }
 
     [Action("Is file in folder", Description = "Is file in folder")]
