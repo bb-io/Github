@@ -16,6 +16,8 @@ using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequ
 using Apps.GitHub.Models.Branch.Requests;
 using Apps.Github.Models.Branch.Requests;
 using System.Collections.Generic;
+using Blackbird.Applications.Sdk.Utils.Extensions.Files;
+using Blackbird.Applications.Sdk.Utils.Models;
 
 namespace Apps.Github.Actions;
 
@@ -75,15 +77,37 @@ public class RepositoryActions : GithubActions
         [ActionParameter] FolderContentRequest folderContentRequest)
     {
         var resultFiles = new List<GithubFile>();
-        var content = await ListRepositoryContent(repositoryRequest, branchRequest, folderContentRequest);
-        foreach (var file in content.Content)
+        var content = string.IsNullOrEmpty(branchRequest.Name) ?
+            await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId), ArchiveFormat.Zipball) :
+            await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId), ArchiveFormat.Zipball, branchRequest.Name);
+        if(content != null || content.Length == 0) 
         {
-            if (file.Type.Value != Octokit.ContentType.File)
-                continue;
-            var fileData = GetFile(repositoryRequest, branchRequest, new GetFileRequest() { FilePath = file.Path});         
+            throw new ArgumentException("Repository is empty!");
+        }
+
+        var filesFromZip = new List<BlackbirdZipEntry>();
+        using(var stream = new MemoryStream(content))
+        {
+            filesFromZip = (await stream.GetFilesFromZip()).ToList();
+        }
+        foreach (var file in filesFromZip)
+        {
+            if(!string.IsNullOrEmpty(folderContentRequest.Path))
+            {
+                var includeSubFolders = folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value;
+                if ((includeSubFolders && !file.Path.StartsWith(folderContentRequest.Path)) ||
+                    (!includeSubFolders && Path.GetDirectoryName(file.Path).Trim('/') != folderContentRequest.Path.Trim('/')))
+                {
+                    continue;
+                }
+            }
+            var filename = Path.GetFileName(file.Path);
+            if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
+                mimeType = MediaTypeNames.Application.Octet;
+            var uploadedFile = await _fileManagementClient.UploadAsync(file.FileStream, mimeType, filename);
             resultFiles.Add(new GithubFile()
             {
-                File = fileData.File,
+                File = uploadedFile,
                 FilePath = file.Path
             });
         }
@@ -217,6 +241,14 @@ public class RepositoryActions : GithubActions
         {
             Files = files
         };
+    }
+
+    [Action("Branch exists", Description = "Branch exists in specified repository")]
+    public bool BranchExists(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter][Display("Branch name")] string branchNameRequest)
+    {
+        return Client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), branchNameRequest).Result != null;
     }
 
     [Action("Is file in folder", Description = "Is file in folder")]
