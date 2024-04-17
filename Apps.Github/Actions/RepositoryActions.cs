@@ -80,7 +80,7 @@ public class RepositoryActions : GithubActions
         var content = string.IsNullOrEmpty(branchRequest.Name) ?
             await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId), ArchiveFormat.Zipball) :
             await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId), ArchiveFormat.Zipball, branchRequest.Name);
-        if(content != null || content.Length == 0) 
+        if(content == null || content.Length == 0) 
         {
             throw new ArgumentException("Repository is empty!");
         }
