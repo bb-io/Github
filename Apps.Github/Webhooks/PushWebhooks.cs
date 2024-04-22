@@ -128,7 +128,7 @@ public class PushWebhooks
         }
         return GeneratePreflight<FilesListResponse>();
     }
-    private bool IsFilePathMatchingPattern(string pattern, string filePath)
+    public static bool IsFilePathMatchingPattern(string pattern, string filePath)
     {
         var matcher = new Matcher();
         matcher.AddInclude(pattern);
