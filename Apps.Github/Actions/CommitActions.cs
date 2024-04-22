@@ -11,6 +11,10 @@ using Apps.Github.Models.Respository.Requests;
 using Apps.Github.Models.Branch.Requests;
 using Apps.GitHub.Models.Branch.Requests;
 using Octokit;
+using Apps.GitHub.Models.Commit.Requests;
+using Apps.Github.Webhooks.Payloads;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Apps.Github.Webhooks;
 
 namespace Apps.Github.Actions;
 
@@ -34,6 +38,33 @@ public class CommitActions : GithubActions
         return new()
         {
             Commits = commits.Select(c => new SmallCommitDto(c))
+        };
+    }
+
+    [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
+    public async Task<FilesListResponse> ListAddedOrModifiedInHours(
+        [ActionParameter] GetRepositoryRequest input,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
+        [ActionParameter] FolderInput folderInput)
+    {
+        if (hoursRequest.Hours > 0)
+            throw new ArgumentException("Specify more than 0 hours!");
+        var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), 
+            new CommitRequest() 
+            { 
+                Sha = branchRequest.Name,
+                Since = DateTime.Now.AddHours(-hoursRequest.Hours)
+            });
+        var files = new List<FilePathObj>();
+        var commitsList = commits.ToList();
+        commitsList.ForEach(c => {
+            files.AddRange(c.Files.Where(x => new[] { "added", "modified"}.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename))
+                .Select(file => new FilePathObj { FilePath = file.Filename }));
+        });
+        return new()
+        {
+            Files = files,
         };
     }
 
