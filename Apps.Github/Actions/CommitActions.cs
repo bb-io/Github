@@ -48,7 +48,7 @@ public class CommitActions : GithubActions
         [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
         [ActionParameter] FolderInput folderInput)
     {
-        if (hoursRequest.Hours < 0)
+        if (hoursRequest.Hours <= 0)
             throw new ArgumentException("Specify more than 0 hours!");
         var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), 
             new CommitRequest() 
@@ -64,7 +64,7 @@ public class CommitActions : GithubActions
         });
         return new()
         {
-            Files = files,
+            Files = commitsList,
         };
     }
 
