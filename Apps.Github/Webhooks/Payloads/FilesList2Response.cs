@@ -20,15 +20,19 @@ namespace Apps.GitHub.Webhooks.Payloads
         public TempOutputClass(GitHubCommit gitCom)
         {
             HtmlUrl = gitCom.HtmlUrl;
-            Files = gitCom.Files.Select(x => new GithubComFile()
+            if(gitCom.Files != null)
             {
-                Filename = x.Filename,
-                Additions = x.Additions,
-                Deletions = x.Deletions,
-                Changes = x.Changes,
-                Status = x.Status,
-                Sha = x.Sha
-            }).ToList();
+                Files = gitCom.Files.Select(x => new GithubComFile()
+                {
+                    Filename = x.Filename,
+                    Additions = x.Additions,
+                    Deletions = x.Deletions,
+                    Changes = x.Changes,
+                    Status = x.Status,
+                    Sha = x.Sha
+                }).ToList();
+            }
+            
         }
 
         public string HtmlUrl { get; set; }
