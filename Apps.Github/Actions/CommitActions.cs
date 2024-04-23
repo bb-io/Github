@@ -57,6 +57,10 @@ public class CommitActions : GithubActions
                 Sha = branchRequest.Name,
                 Since = DateTime.Now.AddHours(-hoursRequest.Hours)
             });
+        if(commits == null)
+        {
+            throw new ArgumentException($"Empty response for commits");
+        }
         var files = new List<FilePathObj>();
         var commitsList = commits.ToList();
         //commitsList.ForEach(c => {
