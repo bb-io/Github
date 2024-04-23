@@ -65,7 +65,7 @@ public class CommitActions : GithubActions
         });
         return new()
         {
-            Files = commitsList,
+            Files = commitsList.Select(x => new TempOutputClass(x)).ToList(),
         };
     }
 
