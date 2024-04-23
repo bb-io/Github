@@ -15,6 +15,7 @@ using Apps.GitHub.Models.Commit.Requests;
 using Apps.Github.Webhooks.Payloads;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Apps.Github.Webhooks;
+using Apps.GitHub.Webhooks.Payloads;
 
 namespace Apps.Github.Actions;
 
@@ -42,7 +43,7 @@ public class CommitActions : GithubActions
     }
 
     [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
-    public async Task<FilesListResponse> ListAddedOrModifiedInHours(
+    public async Task<FilesList2Response> ListAddedOrModifiedInHours(
         [ActionParameter] GetRepositoryRequest input,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
