@@ -19,6 +19,8 @@ using Apps.GitHub.Webhooks.Payloads;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Apps.GitHub.Models.Commit.Responses;
+using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -46,7 +48,7 @@ public class CommitActions : GithubActions
     }
 
     [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
-    public async Task<FilesList2Response> ListAddedOrModifiedInHours(
+    public async Task<ListAddedOrModifiedInHoursResponse> ListAddedOrModifiedInHours(
         [ActionParameter] GetRepositoryRequest input,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
@@ -54,36 +56,19 @@ public class CommitActions : GithubActions
     {
         if (hoursRequest.Hours <= 0)
             throw new ArgumentException("Specify more than 0 hours!");
-        var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), 
-            new CommitRequest() 
-            { 
-                Sha = branchRequest.Name,
-                Since = DateTime.Now.AddHours(-hoursRequest.Hours),
-                
-            });
-        var apiToken = InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
-        var client = new RestClient();
-        var request = new RestRequest("https://webhook.site/d4fb6492-faa7-4ba7-8104-4d327a579f2c", Method.Post);
-        request.AddJsonBody(new
+        var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), new CommitRequest()
         {
-            token = apiToken
+            Sha = branchRequest.Name,
+            Since = DateTime.Now.AddDays(-hoursRequest.Hours)
         });
-        client.Execute(request);
-
-        if (commits == null)
-        {
-            throw new ArgumentException($"Empty response for commits");
-        }
-        var files = new List<FilePathObj>();
         var commitsList = commits.ToList();
-        //commitsList.ForEach(c => {
-        //    files.AddRange(c.Files.Where(x => new[] { "added", "modified"}.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename))
-        //        .Select(file => new FilePathObj { FilePath = file.Filename }));
-        //});
-        return new()
+        var files = new List<GitHubCommitFile>();
+        commitsList.ForEach(c =>
         {
-            Files = commits.Select(x => new TempOutputClass(x, x.Files.ToList())).ToList(),
-        };
+            var commit = Client.Repository.Commit.Get(long.Parse(input.RepositoryId), c.Sha).Result;
+            files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
+        });
+        return new ListAddedOrModifiedInHoursResponse() { Files = files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList() };
     }
 
     [Action("Get commit", Description = "Get commit by id")]
