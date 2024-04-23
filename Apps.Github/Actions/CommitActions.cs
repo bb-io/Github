@@ -59,10 +59,10 @@ public class CommitActions : GithubActions
             });
         var files = new List<FilePathObj>();
         var commitsList = commits.ToList();
-        commitsList.ForEach(c => {
-            files.AddRange(c.Files.Where(x => new[] { "added", "modified"}.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename))
-                .Select(file => new FilePathObj { FilePath = file.Filename }));
-        });
+        //commitsList.ForEach(c => {
+        //    files.AddRange(c.Files.Where(x => new[] { "added", "modified"}.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename))
+        //        .Select(file => new FilePathObj { FilePath = file.Filename }));
+        //});
         return new()
         {
             Files = commitsList.Select(x => new TempOutputClass(x)).ToList(),
