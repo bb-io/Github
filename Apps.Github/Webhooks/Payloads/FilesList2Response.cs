@@ -17,12 +17,12 @@ namespace Apps.GitHub.Webhooks.Payloads
 
     public class TempOutputClass
     {
-        public TempOutputClass(GitHubCommit gitCom)
+        public TempOutputClass(GitHubCommit gitCom, List<GitHubCommitFile> files)
         {
             HtmlUrl = gitCom.HtmlUrl;
-            if(gitCom.Files != null)
+            if(files != null)
             {
-                Files = gitCom.Files.Select(x => new GithubComFile()
+                Files = files.Select(x => new GithubComFile()
                 {
                     Filename = x.Filename,
                     Additions = x.Additions,

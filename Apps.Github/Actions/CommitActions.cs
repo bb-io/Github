@@ -55,7 +55,8 @@ public class CommitActions : GithubActions
             new CommitRequest() 
             { 
                 Sha = branchRequest.Name,
-                Since = DateTime.Now.AddHours(-hoursRequest.Hours)
+                Since = DateTime.Now.AddHours(-hoursRequest.Hours),
+                
             });
         if(commits == null)
         {
@@ -69,7 +70,7 @@ public class CommitActions : GithubActions
         //});
         return new()
         {
-            Files = commitsList.Select(x => new TempOutputClass(x)).ToList(),
+            Files = commits.Select(x => new TempOutputClass(x, x.Files.ToList())).ToList(),
         };
     }
 
