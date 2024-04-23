@@ -59,7 +59,7 @@ public class CommitActions : GithubActions
         var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), new CommitRequest()
         {
             Sha = branchRequest.Name,
-            Since = DateTime.Now.AddDays(-hoursRequest.Hours)
+            Since = DateTime.Now.AddHours(-hoursRequest.Hours),
         });
         var commitsList = commits.ToList();
         var files = new List<GitHubCommitFile>();
