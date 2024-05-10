@@ -17,7 +17,7 @@ public class UserActions
     {
         var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var user = await githubClient.User.Get(input.Username);
-        return new UserDataResponse(user);
+        return new(user);
     }
 
     [Action("Get user", Description = "Get information about specific user")]
@@ -26,7 +26,7 @@ public class UserActions
     {
         var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var user = await githubClient.User.Get(username);
-        return new UserDataResponse(user);
+        return new(user);
     }
 
     [Action("Get my user data", Description = "Get my user data")]
@@ -34,6 +34,6 @@ public class UserActions
     {
         var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
         var user = await githubClient.User.Current();
-        return new UserDataResponse(user);
+        return new(user);
     }
 }

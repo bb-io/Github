@@ -19,9 +19,9 @@ namespace Apps.Github.DataSourceHandlers
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(context.SearchString))
-                return new Dictionary<string, string>();
+                return new();
 
-            var content = await new BlackbirdGithubClient(Creds).Search.SearchUsers(new Octokit.SearchUsersRequest(context.SearchString));
+            var content = await new BlackbirdGithubClient(Creds).Search.SearchUsers(new(context.SearchString));
             return content.Items.Take(30).ToDictionary(x => x.Login, x => $"{x.Login}");
         }
     }

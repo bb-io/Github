@@ -65,7 +65,7 @@ namespace Apps.Github.Models.Respository.Requests
 
         public NewRepository GetNewRepositoryRequest()
         {
-            return new NewRepository(Name)
+            return new(Name)
             {
                 AutoInit = AutoInit,
                 Description = Description,
