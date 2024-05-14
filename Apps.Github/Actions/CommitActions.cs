@@ -66,6 +66,14 @@ public class CommitActions : GithubActions
         commitsList.ForEach(c =>
         {
             var commit = Client.Repository.Commit.Get(long.Parse(input.RepositoryId), c.Sha).Result;
+            if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
+            (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
+                return;
+            else if(hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) && 
+            (hoursRequest.ExcludeAuthors.HasValue && hoursRequest.ExcludeAuthors.Value))
+                return;
+            else if(hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
+                return;
             files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
         });
         return new ListAddedOrModifiedInHoursResponse() { Files = files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList() };
