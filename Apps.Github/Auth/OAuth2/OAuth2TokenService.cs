@@ -51,7 +51,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
 
     private async Task<Dictionary<string, string>> RequestToken(Dictionary<string, string> bodyParameters, CancellationToken cancellationToken)
     {
-        using HttpClient httpClient = new HttpClient();
+        using HttpClient httpClient = new();
         httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
         using var httpContent = new FormUrlEncodedContent(bodyParameters);
         using var response = await httpClient.PostAsync(TokenUrl, httpContent, cancellationToken);

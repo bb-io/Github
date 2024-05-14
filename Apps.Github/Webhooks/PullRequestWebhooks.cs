@@ -13,10 +13,10 @@ public class PullRequestWebhooks
     {
         var data = JsonConvert.DeserializeObject<PullRequestPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        return new WebhookResponse<PullRequestPayloadFlat>
+        return new()
         {
             HttpResponseMessage = null,
-            Result = new PullRequestPayloadFlat(data)
+            Result = new(data)
         };
     }
 }

@@ -13,83 +13,97 @@ namespace Apps.Github.Actions;
 public class PullRequestActions
 {
     [Action("List pull requests", Description = "List pull requests")]
-    public ListPullRequestsResponse ListPullRequests(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<ListPullRequestsResponse> ListPullRequests(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var pulls = client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId)).Result;
-        return new ListPullRequestsResponse
+        var pulls = await client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId));
+        return new()
         {
             PullRequests = pulls.Select(p => new PullRequestDto(p))
         };
     }
 
     [Action("Get pull request", Description = "Get pull request")]
-    public PullRequestDto GetPullRequest(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<PullRequestDto> GetPullRequest(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetPullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var pull = client.PullRequest.Get(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber)).Result;
-        return new PullRequestDto(pull);
+        var pull = await client.PullRequest.Get(long.Parse(repositoryRequest.RepositoryId),
+            int.Parse(input.PullRequestNumber));
+        return new(pull);
     }
 
     [Action("Create pull request", Description = "Create pull request")]
-    public PullRequestDto CreatePullRequest(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<PullRequestDto> CreatePullRequest(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] CreatePullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var pullRequest = new NewPullRequest(input.Title, input.HeadBranch, input.BaseBranch);
-        pullRequest.Body = input.Description;
-        var pull = client.PullRequest.Create(long.Parse(repositoryRequest.RepositoryId), pullRequest).Result;
-        return new PullRequestDto(pull);
+        var pullRequest = new NewPullRequest(input.Title, input.HeadBranch, input.BaseBranch)
+        {
+            Body = input.Description
+        };
+        var pull = await client.PullRequest.Create(long.Parse(repositoryRequest.RepositoryId), pullRequest);
+        return new(pull);
     }
 
     [Action("Merge pull request", Description = "Merge pull request")]
-    public PullRequestMerge MergePullRequest(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public Task<PullRequestMerge> MergePullRequest(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] Models.PullRequest.Requests.MergePullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        return client.PullRequest.Merge(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber), new Octokit.MergePullRequest()).Result;
+        return client.PullRequest.Merge(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber),
+            new());
     }
 
     [Action("List pull request files", Description = "List pull request files")]
-    public ListPullRequestFilesResponse ListPullRequestFiles(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<ListPullRequestFilesResponse> ListPullRequestFiles(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] ListPullFilesRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var files = client.PullRequest.Files(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber)).Result;
-        return new ListPullRequestFilesResponse
+        var files = await client.PullRequest.Files(long.Parse(repositoryRequest.RepositoryId),
+            int.Parse(input.PullRequestNumber));
+        return new()
         {
             Files = files
         };
     }
 
     [Action("List pull request commits", Description = "List pull request commits")]
-    public ListPullRequestCommitsResponse ListPullRequestCommits(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<ListPullRequestCommitsResponse> ListPullRequestCommits(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetPullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var commits = client.PullRequest.Commits(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber)).Result;
-        return new ListPullRequestCommitsResponse
+        var commits = await client.PullRequest.Commits(long.Parse(repositoryRequest.RepositoryId),
+            int.Parse(input.PullRequestNumber));
+        return new()
         {
             Commits = commits.Select(p => new PullRequestCommitDto(p))
         };
     }
 
     [Action("Is pull request merged", Description = "Is pull request merged")]
-    public IsPullMergedResponse IsPullMerged(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<IsPullMergedResponse> IsPullMerged(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetPullRequest input)
     {
         var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        return new IsPullMergedResponse
+        return new()
         {
-            IsPullMerged = client.PullRequest.Merged(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber)).Result,
+            IsPullMerged = await client.PullRequest
+                .Merged(long.Parse(repositoryRequest.RepositoryId), int.Parse(input.PullRequestNumber)),
         };
     }
 }

@@ -18,10 +18,10 @@ public class PushWebhooks
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
         if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<PushPayloadFlat>();
 
-        return new WebhookResponse<PushPayloadFlat>
+        return new()
         {
             HttpResponseMessage = null,
-            Result = new PushPayloadFlat(data)
+            Result = new(data)
         };
     }
 
@@ -38,10 +38,10 @@ public class PushWebhooks
             .Select(filePath => new FilePathObj { FilePath = filePath })));
         if (addedFiles.Any())
         {
-            return new WebhookResponse<FilesListResponse>
+            return new()
             {
                 HttpResponseMessage = null,
-                Result = new FilesListResponse
+                Result = new()
                 { 
                     Files = addedFiles, 
                 }
@@ -63,10 +63,10 @@ public class PushWebhooks
             .Select(filePath => new FilePathObj { FilePath = filePath })));
         if (modifiedFiles.Any())
         {
-            return new WebhookResponse<FilesListResponse>
+            return new()
             {
                 HttpResponseMessage = null,
-                Result = new FilesListResponse
+                Result = new()
                 { 
                     Files = modifiedFiles
                 }
@@ -92,10 +92,10 @@ public class PushWebhooks
         });
         if (files.Any())
         {
-            return new WebhookResponse<FilesListResponse>
+            return new()
             {
                 HttpResponseMessage = null,
-                Result = new FilesListResponse
+                Result = new()
                 {
                     Files = files,
                 }
@@ -117,10 +117,10 @@ public class PushWebhooks
             .Select(filePath => new FilePathObj { FilePath = filePath })));
         if (removedFiles.Any())
         {
-            return new WebhookResponse<FilesListResponse>
+            return new()
             {
                 HttpResponseMessage = null,
-                Result = new FilesListResponse
+                Result = new()
                 { 
                     Files = removedFiles
                 }
@@ -138,10 +138,10 @@ public class PushWebhooks
 
     private WebhookResponse<T> GeneratePreflight<T>() where T : class
     {
-        return new WebhookResponse<T>
+        return new()
         {
             ReceivedWebhookRequestType = WebhookRequestType.Preflight,
-            HttpResponseMessage = new HttpResponseMessage(statusCode: HttpStatusCode.OK)
+            HttpResponseMessage = new(statusCode: HttpStatusCode.OK)
         };
     }
 }

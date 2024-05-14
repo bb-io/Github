@@ -8,7 +8,7 @@ public class ConnectionDefinition : IConnectionDefinition
 
     public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>
     {
-        new ConnectionPropertyGroup
+        new()
         {
             Name = "OAuth",
             AuthenticationType = ConnectionAuthenticationType.OAuth2,
@@ -22,7 +22,7 @@ public class ConnectionDefinition : IConnectionDefinition
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(Dictionary<string, string> values)
     {
         var token = values.First(v => v.Key == "access_token");
-        yield return new AuthenticationCredentialsProvider(
+        yield return new(
             AuthenticationCredentialsRequestLocation.None,
             "Authorization",
             $"{token.Value}"
