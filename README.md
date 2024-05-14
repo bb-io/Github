@@ -76,9 +76,15 @@ In order to respond to events happening in Github, you need to also install our 
 - **Get all files in folder**
 - **Get files by filepaths**
 - **Delete file**
-- **Push file**
+- **Create or update file**
 - **Update file**
-
+- **List added or modified files in X hours** </br>
+  Input parameters:
+  - "Repository ID"
+  - "Last X hours" fetch added or modified files which were committed within X last hours
+  - "Authors" filter files by authors who added/modified those files
+  - "Exclude by authors" - set to "true" if you want to exclude changes made by "Authors"
+  - "Exclude merge commits" - set to "true" if you want to exlude files added/modfied by merge commit
 ### Users
 
 - **Get my user data**
@@ -93,7 +99,7 @@ In order to respond to events happening in Github, you need to also install our 
 
 ### Pulls
 
-= **On pull request action** occurs when there is activity on a pull request. See [this page](https://docs.github.com/en/webhooks/webhook-events-and-payloads#pull_request) for more info.
+- **On pull request action** occurs when there is activity on a pull request. See [this page](https://docs.github.com/en/webhooks/webhook-events-and-payloads#pull_request) for more info.
 
 ### Pushes
 
