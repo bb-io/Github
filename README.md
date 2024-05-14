@@ -83,8 +83,8 @@ In order to respond to events happening in Github, you need to also install our 
   - "Repository ID"
   - "Last X hours" fetch added or modified files which were committed within X last hours
   - "Authors" filter files by authors who added/modified those files
-  - "Exclude by authors" - set to "true" if you want to exclude changes made by "Authors"
-  - "Exclude merge commits" - set to "true" if you want to exlude files added/modfied by merge commit
+  - "Exclude by authors" - set to "true" if you want to exclude changes made by users selected in "Authors" fields
+  - "Exclude merge commits" - set to "true" if you want to exclude files added/modified by merge commit
 ### Users
 
 - **Get my user data**
