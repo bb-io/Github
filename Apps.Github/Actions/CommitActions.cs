@@ -8,19 +8,12 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Apps.Github.Models.Respository.Requests;
-using Apps.Github.Models.Branch.Requests;
 using Apps.GitHub.Models.Branch.Requests;
 using Octokit;
 using Apps.GitHub.Models.Commit.Requests;
 using Apps.Github.Webhooks.Payloads;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Apps.Github.Webhooks;
-using Apps.GitHub.Webhooks.Payloads;
-using Newtonsoft.Json.Linq;
-using RestSharp;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Apps.GitHub.Models.Commit.Responses;
-using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -77,8 +70,8 @@ public class CommitActions : GithubActions
                 return;
             files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
         });
-        return new()
-            { Files = files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList() };
+        
+        return new(files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList());
     }
 
     [Action("Get commit", Description = "Get commit by id")]

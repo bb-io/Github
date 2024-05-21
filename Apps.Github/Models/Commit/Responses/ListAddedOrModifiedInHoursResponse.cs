@@ -1,14 +1,13 @@
 ﻿using Apps.Github.Dtos;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.GitHub.Models.Commit.Responses
 {
-    public class ListAddedOrModifiedInHoursResponse
+    public class ListAddedOrModifiedInHoursResponse(List<CommitFileDto> files)
     {
-        public IEnumerable<CommitFileDto> Files { get; set; }
+        public IEnumerable<CommitFileDto> Files { get; set; } = files;
+
+        [Display("Total count")]
+        public int TotalCount { get; set; } = files.Count;
     }
 }
