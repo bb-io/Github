@@ -1,4 +1,5 @@
 ﻿using Apps.Github.DataSourceHandlers;
+using Apps.GitHub.DataSourceHandlers;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using System;
@@ -14,8 +15,8 @@ namespace Apps.GitHub.Models.Commit.Requests
         [Display("Last X hours", Description = "List changes in specified hours amount")]
         public int Hours { get; set; }
 
-        [Display("Authors", Description = "List changes in specified hours amount")]
-        [DataSource(typeof(UsersDataHandler))]
+        [Display("Authors", Description = "Authors of commits")]
+        [DataSource(typeof(RepositoryAuthorsDataHandler))]
         public List<string>? Authors { get; set; }
 
         [Display("Exclude by authors", Description = "Exclude by authors")]
