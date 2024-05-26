@@ -14,6 +14,10 @@ using Apps.GitHub.Models.Commit.Requests;
 using Apps.Github.Webhooks.Payloads;
 using Apps.Github.Webhooks;
 using Apps.GitHub.Models.Commit.Responses;
+using System.IO.Compression;
+using Blackbird.Applications.Sdk.Common.Files;
+using Apps.GitHub;
+using System.Net.Mime;
 
 namespace Apps.Github.Actions;
 
@@ -63,15 +67,64 @@ public class CommitActions : GithubActions
             if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
             (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
                 return;
-            else if(hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) && 
+            else if (hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) &&
             (hoursRequest.ExcludeAuthors.HasValue && hoursRequest.ExcludeAuthors.Value))
                 return;
-            else if(hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
+            else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
                 return;
             files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
         });
-        
+
         return new(files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList());
+    }
+
+    [Action("Download added or modified files in X hours as zip", Description = "Download added or modified files in X hours as zip")]
+    public async Task<FileReference> DownloadAddedOrModifiedInHours(  // previous return type ListAddedOrModifiedInHoursResponse
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
+        [ActionParameter] FolderInput folderInput)
+    {
+        if (hoursRequest.Hours <= 0)
+            throw new ArgumentException("Specify more than 0 hours!");
+        var commits = await Client.Repository.Commit.GetAll(long.Parse(repositoryRequest.RepositoryId), new CommitRequest()
+        {
+            Sha = branchRequest.Name,
+            Since = DateTime.Now.AddHours(-hoursRequest.Hours),
+        });
+        var commitsList = commits.ToList();
+        var files = new List<GitHubCommitFile>();
+        commitsList.ForEach(c =>
+        {
+            var commit = Client.Repository.Commit.Get(long.Parse(repositoryRequest.RepositoryId), c.Sha).Result;
+            if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
+            (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
+                return;
+            else if (hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) &&
+            (hoursRequest.ExcludeAuthors.HasValue && hoursRequest.ExcludeAuthors.Value))
+                return;
+            else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
+                return;
+            files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
+        });
+        var addedOrModifiedFilenames = files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).Select(x => x.Filename).ToList();
+
+        var content = string.IsNullOrEmpty(branchRequest.Name)
+            ? await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId),
+                ArchiveFormat.Zipball)
+            : await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId),
+                ArchiveFormat.Zipball, branchRequest.Name);
+
+        using var memoryStream = new MemoryStream(content);
+        using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Update);
+        foreach (var entry in archive.Entries.ToList())
+        {
+            Console.WriteLine(entry.FullName);
+            if (entry.Length != 0 && !addedOrModifiedFilenames.Contains(entry.FullName))
+                entry.Delete();
+        }
+        var uploadedFile = await _fileManagementClient.UploadAsync(memoryStream, MediaTypeNames.Application.Zip, $"Repository_{repositoryRequest.RepositoryId}.zip");
+        return uploadedFile;
     }
 
     [Action("Get commit", Description = "Get commit by id")]
