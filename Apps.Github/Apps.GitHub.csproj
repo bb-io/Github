@@ -14,7 +14,6 @@
         <PackageReference Include="Blackbird.Applications.Sdk.Common" Version="2.6.0" />
         <PackageReference Include="Blackbird.Applications.SDK.Extensions.FileManagement" Version="1.0.1" />
         <PackageReference Include="Blackbird.Applications.Sdk.Utils" Version="1.0.25" />
-        <PackageReference Include="IronZIP" Version="2024.5.1" />
         <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="7.0.0" />
         <PackageReference Include="MimeTypes" Version="2.4.1">
             <PrivateAssets>all</PrivateAssets>
