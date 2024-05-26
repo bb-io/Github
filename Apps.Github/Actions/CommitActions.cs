@@ -18,6 +18,7 @@ using System.IO.Compression;
 using Blackbird.Applications.Sdk.Common.Files;
 using Apps.GitHub;
 using System.Net.Mime;
+using IronZip;
 
 namespace Apps.Github.Actions;
 
@@ -115,15 +116,17 @@ public class CommitActions : GithubActions
             : await Client.Repository.Content.GetArchive(long.Parse(repositoryRequest.RepositoryId),
                 ArchiveFormat.Zipball, branchRequest.Name);
 
-        using var memoryStream = new MemoryStream(content);
-        using var archive = new ZipArchive(memoryStream, ZipArchiveMode.Update);
-        foreach (var entry in archive.Entries.ToList())
+        using var sourceStream = new MemoryStream(content);
+        var archive = SharpCompress.Archives.Zip.ZipArchive.Open(sourceStream);
+        foreach (var entry in archive.Entries)
         {
-            Console.WriteLine(entry.FullName);
-            if (entry.Length != 0 && !addedOrModifiedFilenames.Contains(entry.FullName))
-                entry.Delete();
+            if (!entry.IsDirectory && !addedOrModifiedFilenames.Contains(entry.Key.Substring(entry.Key.IndexOf("/") + 1)))
+                archive.RemoveEntry(entry);
         }
-        var uploadedFile = await _fileManagementClient.UploadAsync(memoryStream, MediaTypeNames.Application.Zip, $"Repository_{repositoryRequest.RepositoryId}.zip");
+        using var resultStream = new MemoryStream();
+        archive.SaveTo(resultStream);
+        resultStream.Seek(0, SeekOrigin.Begin);
+        var uploadedFile = await _fileManagementClient.UploadAsync(resultStream, MediaTypeNames.Application.Zip, $"Repository_{repositoryRequest.RepositoryId}.zip");
         return uploadedFile;
     }
 
