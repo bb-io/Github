@@ -1,5 +1,4 @@
 ﻿using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Apps.Github.Dtos;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Apps.Github.Models.Respository.Responses;
@@ -14,8 +13,6 @@ using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequest;
 using Apps.GitHub.Models.Branch.Requests;
-using Apps.Github.Models.Branch.Requests;
-using System.Collections.Generic;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Applications.Sdk.Utils.Models;
 
