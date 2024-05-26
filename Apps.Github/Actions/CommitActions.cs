@@ -14,11 +14,8 @@ using Apps.GitHub.Models.Commit.Requests;
 using Apps.Github.Webhooks.Payloads;
 using Apps.Github.Webhooks;
 using Apps.GitHub.Models.Commit.Responses;
-using System.IO.Compression;
 using Blackbird.Applications.Sdk.Common.Files;
-using Apps.GitHub;
 using System.Net.Mime;
-using IronZip;
 
 namespace Apps.Github.Actions;
 
