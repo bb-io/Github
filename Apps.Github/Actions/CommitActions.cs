@@ -16,6 +16,9 @@ using Apps.Github.Webhooks;
 using Apps.GitHub.Models.Commit.Responses;
 using Blackbird.Applications.Sdk.Common.Files;
 using System.Net.Mime;
+using Blackbird.Applications.Sdk.Utils.Models;
+using Apps.GitHub;
+using System.Text;
 
 namespace Apps.Github.Actions;
 
@@ -194,6 +197,27 @@ public class CommitActions : GithubActions
         return new(pushFileResult.Commit);
     }
 
+    [Action("Upload files in zip archive", Description = "Upload files in zip archive (folder structure is kept)")]
+    public async Task<SmallCommitDto> UpdateFilesInZip(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] UpdateFilesInZipRequest input)
+    {
+        var repository = await Client.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var branchName = branchRequest.Name ?? repository.DefaultBranch;
+
+        var newTree = await CreateNewTreeFromZip(repositoryRequest.RepositoryId, branchName, input.File);
+
+        var newTreeResponse = await Client.Git.Tree.Create(long.Parse(repositoryRequest.RepositoryId), newTree);
+        var lastCommit = await Client.Repository.Commit.GetAll(long.Parse(repositoryRequest.RepositoryId),
+            new CommitRequest() { Sha = branchRequest.Name }, new ApiOptions() { PageSize = 1, PageCount = 1 });
+        var newCommit = await Client.Git.Commit.Create(long.Parse(repositoryRequest.RepositoryId), new NewCommit(input.CommitMessage, newTreeResponse.Sha, lastCommit.First().Sha));
+
+        var branchReference = await Client.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId), $"refs/heads/{branchName}");
+        await Client.Git.Reference.Update(long.Parse(repositoryRequest.RepositoryId), branchReference.Ref, new ReferenceUpdate(newCommit.Sha));
+        return new(newCommit);
+    }
+
     [Action("Delete file", Description = "Delete file from repository")]
     public async Task DeleteFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -216,5 +240,56 @@ public class CommitActions : GithubActions
             }, branchRequest);
 
         return repoContent.Items.First(x => x.Path == path).Sha;
+    }
+
+    private async Task<NewTree> CreateNewTreeFromZip(string repositoryId, string branchName, FileReference zipFile)
+    {
+        using var file = await _fileManagementClient.DownloadAsync(zipFile);
+        var filesFromZip = (await file.GetFilesFromZip()).ToList();
+
+        var tree = await Client.Git.Tree.Get(long.Parse(repositoryId), branchName);
+        var newTree = new NewTree()
+        {
+            BaseTree = tree.Sha
+        };
+        foreach (var entry in filesFromZip)
+        {
+            var fileData = await entry.FileStream.GetByteData();
+            NewTreeItem treeItem = null;
+            if (IsNonTextExtension(entry.Path))
+            {
+                var blobResult = await Client.Git.Blob.Create(long.Parse(repositoryId), new NewBlob()
+                {
+                    Content = Convert.ToBase64String(fileData),
+                    Encoding = EncodingType.Base64
+                });
+                treeItem = new NewTreeItem()
+                {
+                    Path = entry.Path,
+                    Type = TreeType.Blob,
+                    Mode = "100644",
+                    Sha = blobResult.Sha
+                };
+            }
+            else
+            {
+                treeItem = new NewTreeItem()
+                {
+                    Path = entry.Path,
+                    Type = TreeType.Blob,
+                    Mode = "100644",
+                    Content = Encoding.UTF8.GetString(fileData)
+                };
+            }
+            newTree.Tree.Add(treeItem);
+        }
+        return newTree;
+    }
+
+    private static readonly string[] NonTextExtensions = { ".jpg", ".bmp", ".gif", ".png" };
+
+    private static bool IsNonTextExtension(string filename)
+    {
+        return NonTextExtensions.Contains(Path.GetExtension(filename).ToLower());
     }
 }
