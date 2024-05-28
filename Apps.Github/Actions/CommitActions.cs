@@ -19,6 +19,7 @@ using System.Net.Mime;
 using Blackbird.Applications.Sdk.Utils.Models;
 using Apps.GitHub;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -64,7 +65,9 @@ public class CommitActions : GithubActions
         var files = new List<GitHubCommitFile>();
         commitsList.ForEach(c =>
         {
-            var commit = Client.Repository.Commit.Get(long.Parse(input.RepositoryId), c.Sha).Result;
+            var commitWithFiles = GetCommitWithPaginatedFiles(input.RepositoryId, c.Sha).Result;
+            var commit = commitWithFiles.Item1;
+
             if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
             (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
                 return;
@@ -73,7 +76,7 @@ public class CommitActions : GithubActions
                 return;
             else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
                 return;
-            files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
+            files.AddRange(commitWithFiles.Item2.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
         });
 
         return new(files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList());
@@ -97,7 +100,9 @@ public class CommitActions : GithubActions
         var files = new List<GitHubCommitFile>();
         commitsList.ForEach(c =>
         {
-            var commit = Client.Repository.Commit.Get(long.Parse(repositoryRequest.RepositoryId), c.Sha).Result;
+            var commitWithFiles = GetCommitWithPaginatedFiles(repositoryRequest.RepositoryId, c.Sha).Result;
+            var commit = commitWithFiles.Item1;
+
             if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
             (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
                 return;
@@ -106,7 +111,7 @@ public class CommitActions : GithubActions
                 return;
             else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
                 return;
-            files.AddRange(commit.Files.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
+            files.AddRange(commitWithFiles.Item2.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
         });
         var addedOrModifiedFilenames = files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).Select(x => x.Filename).ToList();
 
@@ -291,5 +296,23 @@ public class CommitActions : GithubActions
     private static bool IsNonTextExtension(string filename)
     {
         return NonTextExtensions.Contains(Path.GetExtension(filename).ToLower());
+    }
+
+    private async Task<(GitHubCommit, List<GitHubCommitFile>)> GetCommitWithPaginatedFiles(string repositoryId, string commitSha)
+    {
+        var baseCommit = await Client.Repository.Commit.Get(long.Parse(repositoryId), commitSha);
+        var paginatedFiles = new List<GitHubCommitFile>();
+        paginatedFiles.AddRange(baseCommit.Files);
+
+        int page = 2;
+        GitHubCommit paginateCommitFiles = null;
+        do
+        {
+            paginateCommitFiles = await Client.Repository.Commit.Get(long.Parse(repositoryId), $"{commitSha}?page={page}");
+            paginatedFiles.AddRange(paginateCommitFiles.Files);
+            ++page;
+        }
+        while (paginateCommitFiles.Files.Count() > 0);
+        return (baseCommit, paginatedFiles);
     }
 }
