@@ -85,9 +85,9 @@ In order to respond to events happening in Github, you need to also install our 
   - "Authors" filter files by authors who added/modified those files
   - "Exclude by authors" - set to "true" if you want to exclude changes made by users selected in "Authors" fields
   - "Exclude merge commits" - set to "true" if you want to exclude files added/modified by merge commit
-- **Download added or modified files in X hours as zip** </br>
+- **Download added or modified files in X hours as zip**
   Same input parameters as in "List added or modified files in X hours". But this action returns you a ZIP archive with actual files. Also folder structure is left the same as in your repository
-- **Upload files in zip archive** </br>
+- **Upload files in zip archive**
   Action to upload files back to your repository. Works in pair with "Download added or modified files in X hours as zip". Folder structure in ZIP archive will be projected on your repository. In case of existing file it's content will be updated.
 ### Users
 
