@@ -200,8 +200,19 @@ public class RepositoryActions : GithubActions
     {
         var commits = await new CommitActions(InvocationContext, _fileManagementClient)
             .ListRepositoryCommits(repositoryRequest, branchRequest);
-        var tree = await Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId),
-            commits.Commits.First().Id);
+
+        TreeResponse tree = null;
+        foreach(var commit in commits.Commits)
+        {
+            try
+            {
+                tree = await Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), commit.Id);
+                break;
+            }
+            catch (Octokit.NotFoundException)
+            {}
+        }
+        
         var paths = tree.Tree.Select(x => new RepositoryItem
         {
             Sha = x.Sha,
@@ -281,9 +292,9 @@ public class RepositoryActions : GithubActions
         };
     }
 
-    [Action("Debug", Description = "Debug")]
-    public string Debug()
-    {
-        return InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
-    }
+    //[Action("Debug", Description = "Debug")]
+    //public string Debug()
+    //{
+    //    return InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
+    //}
 }
