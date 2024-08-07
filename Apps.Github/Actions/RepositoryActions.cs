@@ -15,6 +15,7 @@ using RepositoryRequest = Apps.Github.Models.Respository.Requests.RepositoryRequ
 using Apps.GitHub.Models.Branch.Requests;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Blackbird.Applications.Sdk.Utils.Models;
+using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.Github.Actions;
 
@@ -278,5 +279,11 @@ public class RepositoryActions : GithubActions
         {
             IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
         };
+    }
+
+    [Action("Debug", Description = "Debug")]
+    public string Debug()
+    {
+        return InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
     }
 }
