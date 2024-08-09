@@ -47,6 +47,7 @@ In order to respond to events happening in Github, you need to also install our 
 - **Get repository issues**
 - **List all repository content**
 - **List repository folder content**
+- **File exists** 
 
 ### Branches
 
