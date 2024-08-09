@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <Product>Github</Product>
         <Description>Software development &amp; version control</Description>
-        <Version>1.1.46</Version>
+        <Version>1.1.47</Version>
         <AssemblyName>Apps.GitHub</AssemblyName>
     </PropertyGroup>
 
