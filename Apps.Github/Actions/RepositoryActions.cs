@@ -289,18 +289,30 @@ public class RepositoryActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] GetFileRequest getFileRequest)
     {
-        var repoInfo = await GetRepositoryById(repositoryRequest);
-        var fileData = string.IsNullOrEmpty(branchRequest.Name)
-            ? await Client.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath)
-            : await Client.Repository.Content.GetRawContentByRef(repoInfo.OwnerLogin, repoInfo.Name,
-                getFileRequest.FilePath, branchRequest.Name);
-
-        if (fileData == null)
+        try
         {
-            return false;
-        }
+            var repoInfo = await GetRepositoryById(repositoryRequest);
+            var fileData = string.IsNullOrEmpty(branchRequest.Name)
+                ? await Client.Repository.Content.GetRawContent(repoInfo.OwnerLogin, repoInfo.Name, getFileRequest.FilePath)
+                : await Client.Repository.Content.GetRawContentByRef(repoInfo.OwnerLogin, repoInfo.Name,
+                    getFileRequest.FilePath, branchRequest.Name);
+
+            if (fileData == null)
+            {
+                return false;
+            }
         
-        return true;
+            return true;
+        }
+        catch (Exception e)
+        {
+            if(e.Message.Contains("Not Found"))
+            {
+                return false;
+            }
+            
+            throw;
+        }
     }
 
     [Action("Is file in folder", Description = "Is file in folder")]
