@@ -324,9 +324,9 @@ public class RepositoryActions : GithubActions
         };
     }
 
-    //[Action("Debug", Description = "Debug")]
-    //public string Debug()
-    //{
-    //    return InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
-    //}
+    [Action("Debug", Description = "Debug")]
+    public string Debug()
+    {
+        return InvocationContext.AuthenticationCredentialsProviders.First(p => p.KeyName == "Authorization").Value;
+    }
 }
