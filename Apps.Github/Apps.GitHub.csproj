@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <Product>Github</Product>
         <Description>Software development &amp; version control</Description>
-        <Version>1.1.46</Version>
+        <Version>1.1.47</Version>
         <AssemblyName>Apps.GitHub</AssemblyName>
     </PropertyGroup>
 
@@ -27,5 +27,11 @@
 
     <ItemGroup>
         <EmbeddedResource CopyToOutputDirectory="Always" Include="image\icon.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\README.md">
+        <Link>README.md</Link>
+      </Content>
     </ItemGroup>
 </Project>
