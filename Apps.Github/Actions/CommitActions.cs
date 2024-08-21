@@ -15,11 +15,7 @@ using Apps.Github.Webhooks.Payloads;
 using Apps.Github.Webhooks;
 using Apps.GitHub.Models.Commit.Responses;
 using Blackbird.Applications.Sdk.Common.Files;
-using System.Net.Mime;
-using Blackbird.Applications.Sdk.Utils.Models;
-using Apps.GitHub;
 using System.Text;
-using System.Collections.Generic;
 
 namespace Apps.Github.Actions;
 
@@ -48,7 +44,7 @@ public class CommitActions : GithubActions
     }
 
     [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
-    public async Task<ListAddedOrModifiedInHoursResponse> ListAddedOrModifiedInHours(
+    public async Task<CommitFilesInfoResponse> ListAddedOrModifiedInHours(
         [ActionParameter] GetRepositoryRequest input,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
@@ -247,49 +243,49 @@ public class CommitActions : GithubActions
         return repoContent.Items.First(x => x.Path == path).Sha;
     }
 
-    private async Task<NewTree> CreateNewTreeFromZip(string repositoryId, string branchName, FileReference zipFile)
-    {
-        using var file = await _fileManagementClient.DownloadAsync(zipFile);
-        var filesFromZip = (await file.GetFilesFromZip()).ToList();
+    //private async Task<NewTree> CreateNewTreeFromZip(string repositoryId, string branchName, FileReference zipFile)
+    //{
+    //    using var file = await _fileManagementClient.DownloadAsync(zipFile);
+    //    var filesFromZip = (await file.GetFilesFromZip()).ToList();
 
-        var tree = await Client.Git.Tree.Get(long.Parse(repositoryId), branchName);
-        var newTree = new NewTree()
-        {
-            BaseTree = tree.Sha
-        };
-        foreach (var entry in filesFromZip)
-        {
-            var fileData = await entry.FileStream.GetByteData();
-            NewTreeItem treeItem = null;
-            if (IsNonTextExtension(entry.Path))
-            {
-                var blobResult = await Client.Git.Blob.Create(long.Parse(repositoryId), new NewBlob()
-                {
-                    Content = Convert.ToBase64String(fileData),
-                    Encoding = EncodingType.Base64
-                });
-                treeItem = new NewTreeItem()
-                {
-                    Path = entry.Path,
-                    Type = TreeType.Blob,
-                    Mode = "100644",
-                    Sha = blobResult.Sha
-                };
-            }
-            else
-            {
-                treeItem = new NewTreeItem()
-                {
-                    Path = entry.Path,
-                    Type = TreeType.Blob,
-                    Mode = "100644",
-                    Content = Encoding.UTF8.GetString(fileData)
-                };
-            }
-            newTree.Tree.Add(treeItem);
-        }
-        return newTree;
-    }
+    //    var tree = await Client.Git.Tree.Get(long.Parse(repositoryId), branchName);
+    //    var newTree = new NewTree()
+    //    {
+    //        BaseTree = tree.Sha
+    //    };
+    //    foreach (var entry in filesFromZip)
+    //    {
+    //        var fileData = await entry.FileStream.GetByteData();
+    //        NewTreeItem treeItem = null;
+    //        if (IsNonTextExtension(entry.Path))
+    //        {
+    //            var blobResult = await Client.Git.Blob.Create(long.Parse(repositoryId), new NewBlob()
+    //            {
+    //                Content = Convert.ToBase64String(fileData),
+    //                Encoding = EncodingType.Base64
+    //            });
+    //            treeItem = new NewTreeItem()
+    //            {
+    //                Path = entry.Path,
+    //                Type = TreeType.Blob,
+    //                Mode = "100644",
+    //                Sha = blobResult.Sha
+    //            };
+    //        }
+    //        else
+    //        {
+    //            treeItem = new NewTreeItem()
+    //            {
+    //                Path = entry.Path,
+    //                Type = TreeType.Blob,
+    //                Mode = "100644",
+    //                Content = Encoding.UTF8.GetString(fileData)
+    //            };
+    //        }
+    //        newTree.Tree.Add(treeItem);
+    //    }
+    //    return newTree;
+    //}
 
     private static readonly string[] NonTextExtensions = { ".jpg", ".bmp", ".gif", ".png" };
 
@@ -298,12 +294,11 @@ public class CommitActions : GithubActions
         return NonTextExtensions.Contains(Path.GetExtension(filename).ToLower());
     }
 
-    private async Task<(GitHubCommit, List<GitHubCommitFile>)> GetCommitWithPaginatedFiles(string repositoryId, string commitSha)
+    public async Task<(GitHubCommit, List<GitHubCommitFile>)> GetCommitWithPaginatedFiles(string repositoryId, string commitSha)
     {
         var baseCommit = await Client.Repository.Commit.Get(long.Parse(repositoryId), commitSha);
         var paginatedFiles = new List<GitHubCommitFile>();
         paginatedFiles.AddRange(baseCommit.Files);
-
         int page = 2;
         GitHubCommit paginateCommitFiles = null;
         do
