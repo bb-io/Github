@@ -44,7 +44,7 @@ public class CommitActions : GithubActions
     }
 
     [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
-    public async Task<FilesInfoResponse> ListAddedOrModifiedInHours(
+    public async Task<CommitFilesInfoResponse> ListAddedOrModifiedInHours(
         [ActionParameter] GetRepositoryRequest input,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,

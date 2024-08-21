@@ -3,6 +3,7 @@ using Apps.Github.Dtos;
 using Apps.Github.Models.PullRequest.Requests;
 using Apps.Github.Models.PullRequest.Responses;
 using Apps.Github.Models.Respository.Requests;
+using Apps.GitHub.Dtos;
 using Apps.GitHub.Models.Commit.Responses;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -69,7 +70,7 @@ public class PullRequestActions : GithubActions
     }
 
     [Action("List pull request files", Description = "List pull request files")]
-    public async Task<FilesInfoResponse> ListPullRequestFiles(
+    public async Task<PullRequestFilesResponse> ListPullRequestFiles(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] ListPullFilesRequest input)
     {
@@ -81,7 +82,7 @@ public class PullRequestActions : GithubActions
             var files = await commitActions.GetCommitWithPaginatedFiles(repositoryRequest.RepositoryId, commit.Sha);
             commitsFiles.AddRange(files.Item2);
         }
-        return new(commitsFiles.Select(x => new CommitFileDto(x)).ToList());
+        return new(commitsFiles.DistinctBy(x => x.Sha).Select(x => new PullRequestFileDto(x)).ToList());
     }
 
     [Action("List pull request commits", Description = "List pull request commits")]
