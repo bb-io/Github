@@ -37,7 +37,8 @@ public class RepositoryActions : GithubActions
         return new(repository);
     }
 
-    [Action("Get repository file", Description = "Get repository file by path")]
+    // Add large file downloading using download_url parameter
+    [Action("Download file", Description = "Download a file from a specified folder")]
     public async Task<GetFileResponse> GetFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
@@ -69,6 +70,11 @@ public class RepositoryActions : GithubActions
         };
     }
 
+    // Change to:
+    // Search files in folder
+        // Recursive optional
+        // name + * searching (*.html)
+    // Return the paths
     [Action("Get all files in folder", Description = "Get all files in folder")]
     public async Task<GetRepositoryFilesFromFilepathsResponse> GetAllFilesInFolder(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -129,7 +135,7 @@ public class RepositoryActions : GithubActions
         return new() { Files = resultFiles };
     }
 
-    [Action("Get repository", Description = "Get repository info")]
+    // [Action("Get repository", Description = "Get repository info")]
     public async Task<RepositoryDto> GetRepositoryById([ActionParameter] GetRepositoryRequest input)
     {
         var repository = await Client.Repository.Get(long.Parse(input.RepositoryId));
@@ -147,16 +153,17 @@ public class RepositoryActions : GithubActions
         };
     }
 
-    [Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
-    public async Task<GetPullRequestsResponse> GetPullRequestsInRepository([ActionParameter] RepositoryRequest input)
-    {
-        var pullRequests = await Client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId));
-        return new()
-        {
-            PullRequests = pullRequests.Select(p => new PullRequestDto(p))
-        };
-    }
+    //[Action("Get repository pull requests", Description = "Get opened pull requests in a repository")]
+    //public async Task<GetPullRequestsResponse> GetPullRequestsInRepository([ActionParameter] RepositoryRequest input)
+    //{
+    //    var pullRequests = await Client.PullRequest.GetAllForRepository(long.Parse(input.RepositoryId));
+    //    return new()
+    //    {
+    //        PullRequests = pullRequests.Select(p => new PullRequestDto(p))
+    //    };
+    //}
 
+    // Remove this one
     [Action("List repository folder content", Description = "List repository content by specified path")]
     public async Task<RepositoryContentResponse> ListRepositoryContent(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -184,15 +191,16 @@ public class RepositoryActions : GithubActions
         };
     }
 
-    [Action("List repositories", Description = "List all repositories")]
-    public async Task<ListRepositoriesResponse> ListRepositories()
-    {
-        var content = await Client.Repository.GetAllForCurrent();
-        var repositories = content.Select(x => new RepositoryDto(x)).ToArray();
+    //[Action("List repositories", Description = "List all repositories")]
+    //public async Task<ListRepositoriesResponse> ListRepositories()
+    //{
+    //    var content = await Client.Repository.GetAllForCurrent();
+    //    var repositories = content.Select(x => new RepositoryDto(x)).ToArray();
 
-        return new(repositories);
-    }
+    //    return new(repositories);
+    //}
 
+    // Remove this
     [Action("List all repository content", Description = "List all repository content (paths)")]
     public async Task<RepositoryContentPathsResponse> ListAllRepositoryContent(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -225,54 +233,55 @@ public class RepositoryActions : GithubActions
         };
     }
 
-    [Action("List all repository folders", Description = "List all repository folders")]
-    public async Task<RepositoryContentPathsResponse> ListAllRepositoryFolder(
-        [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] GetOptionalBranchRequest branchRequest)
-    {
-        var commits = await new CommitActions(InvocationContext, _fileManagementClient)
-            .ListRepositoryCommits(repositoryRequest, branchRequest);
-        var tree = await Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId),
-            commits.Commits.First().Id);
-        var paths = tree.Tree.Where(x => x.Type == TreeType.Tree).Select(x => new RepositoryItem
-        {
-            Sha = x.Sha,
-            Path = x.Path,
-            IsFolder = x.Type == TreeType.Tree
-        });
-        return new()
-        {
-            Items = paths
-        };
-    }
+    //[Action("List all repository folders", Description = "List all repository folders")]
+    //public async Task<RepositoryContentPathsResponse> ListAllRepositoryFolder(
+    //    [ActionParameter] GetRepositoryRequest repositoryRequest,
+    //    [ActionParameter] GetOptionalBranchRequest branchRequest)
+    //{
+    //    var commits = await new CommitActions(InvocationContext, _fileManagementClient)
+    //        .ListRepositoryCommits(repositoryRequest, branchRequest);
+    //    var tree = await Client.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId),
+    //        commits.Commits.First().Id);
+    //    var paths = tree.Tree.Where(x => x.Type == TreeType.Tree).Select(x => new RepositoryItem
+    //    {
+    //        Sha = x.Sha,
+    //        Path = x.Path,
+    //        IsFolder = x.Type == TreeType.Tree
+    //    });
+    //    return new()
+    //    {
+    //        Items = paths
+    //    };
+    //}
 
-    [Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
-    public async Task<GetRepositoryFilesFromFilepathsResponse> GetRepositoryFilesFromFilepaths(
-        [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] GetOptionalBranchRequest branchRequest,
-        [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
-    {
-        var files = new List<GithubFile>();
-        foreach (var filePath in input.FilePaths)
-        {
-            var fileData = await GetFile(
-                repositoryRequest,
-                branchRequest,
-                new() { FilePath = filePath });
+    //[Action("Get files by filepaths", Description = "Get files by filepaths from webhooks")]
+    //public async Task<GetRepositoryFilesFromFilepathsResponse> GetRepositoryFilesFromFilepaths(
+    //    [ActionParameter] GetRepositoryRequest repositoryRequest,
+    //    [ActionParameter] GetOptionalBranchRequest branchRequest,
+    //    [ActionParameter] GetRepositoryFilesFromFilepathsRequest input)
+    //{
+    //    var files = new List<GithubFile>();
+    //    foreach (var filePath in input.FilePaths)
+    //    {
+    //        var fileData = await GetFile(
+    //            repositoryRequest,
+    //            branchRequest,
+    //            new() { FilePath = filePath });
 
-            files.Add(new()
-            {
-                FilePath = fileData.FilePath,
-                File = fileData.File
-            });
-        }
+    //        files.Add(new()
+    //        {
+    //            FilePath = fileData.FilePath,
+    //            File = fileData.File
+    //        });
+    //    }
 
-        return new()
-        {
-            Files = files
-        };
-    }
+    //    return new()
+    //    {
+    //        Files = files
+    //    };
+    //}
 
+    // Move to Branch actions
     [Action("Branch exists", Description = "Branch exists in specified repository")]
     public async Task<bool> BranchExists(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
@@ -315,14 +324,14 @@ public class RepositoryActions : GithubActions
         }
     }
 
-    [Action("Is file in folder", Description = "Is file in folder")]
-    public IsFileInFolderResponse IsFileInFolder([ActionParameter] IsFileInFolderRequest input)
-    {
-        return new()
-        {
-            IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
-        };
-    }
+    //[Action("Is file in folder", Description = "Is file in folder")]
+    //public IsFileInFolderResponse IsFileInFolder([ActionParameter] IsFileInFolderRequest input)
+    //{
+    //    return new()
+    //    {
+    //        IsFileInFolder = input.FilePath.Split('/').SkipLast(1).Contains(input.FolderName) ? 1 : 0
+    //    };
+    //}
 
     [Action("Debug", Description = "Debug")]
     public string Debug()

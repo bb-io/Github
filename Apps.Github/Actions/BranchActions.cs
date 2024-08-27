@@ -14,29 +14,29 @@ namespace Apps.Github.Actions;
 [ActionList]
 public class BranchActions
 {
-    [Action("List branches", Description = "List respository branches")]
-    public async Task<ListRepositoryBranchesResponse> ListRepositoryBranches(
-        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] GetRepositoryRequest input)
-    {
-        var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var branches = await client.Repository.Branch.GetAll(long.Parse(input.RepositoryId));
-        return new()
-        {
-            Branches = branches.Select(b => new BranchDto(b))
-        };
-    }
+    //[Action("List branches", Description = "List respository branches")]
+    //public async Task<ListRepositoryBranchesResponse> ListRepositoryBranches(
+    //    IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    //    [ActionParameter] GetRepositoryRequest input)
+    //{
+    //    var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
+    //    var branches = await client.Repository.Branch.GetAll(long.Parse(input.RepositoryId));
+    //    return new()
+    //    {
+    //        Branches = branches.Select(b => new BranchDto(b))
+    //    };
+    //}
 
-    [Action("Get branch", Description = "Get branch by name")]
-    public async Task<BranchDto> GetBranch(
-        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] GetBranchRequest input)
-    {
-        var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var branch = await client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.Name);
-        return new(branch);
-    }
+    //[Action("Get branch", Description = "Get branch by name")]
+    //public async Task<BranchDto> GetBranch(
+    //    IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    //    [ActionParameter] GetRepositoryRequest repositoryRequest,
+    //    [ActionParameter] GetBranchRequest input)
+    //{
+    //    var client = new BlackbirdGithubClient(authenticationCredentialsProviders);
+    //    var branch = await client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.Name);
+    //    return new(branch);
+    //}
 
     [Action("Merge branch", Description = "Merge branch")]
     public async Task<MergeDto> MergeBranch(

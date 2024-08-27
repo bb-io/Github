@@ -30,53 +30,53 @@ public class CommitActions : GithubActions
         _fileManagementClient = fileManagementClient;
     }
 
-    [Action("List commits", Description = "List respository commits")]
-    public async Task<ListRepositoryCommitsResponse> ListRepositoryCommits(
-        [ActionParameter] GetRepositoryRequest input,
-        [ActionParameter] GetOptionalBranchRequest branchRequest)
-    {
-        var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId),
-            new CommitRequest() { Sha = branchRequest.Name });
-        return new()
-        {
-            Commits = commits.Select(c => new SmallCommitDto(c))
-        };
-    }
+    //[Action("List commits", Description = "List respository commits")]
+    //public async Task<ListRepositoryCommitsResponse> ListRepositoryCommits(
+    //    [ActionParameter] GetRepositoryRequest input,
+    //    [ActionParameter] GetOptionalBranchRequest branchRequest)
+    //{
+    //    var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId),
+    //        new CommitRequest() { Sha = branchRequest.Name });
+    //    return new()
+    //    {
+    //        Commits = commits.Select(c => new SmallCommitDto(c))
+    //    };
+    //}
 
-    [Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
-    public async Task<CommitFilesInfoResponse> ListAddedOrModifiedInHours(
-        [ActionParameter] GetRepositoryRequest input,
-        [ActionParameter] GetOptionalBranchRequest branchRequest,
-        [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
-        [ActionParameter] FolderInput folderInput)
-    {
-        if (hoursRequest.Hours <= 0)
-            throw new ArgumentException("Specify more than 0 hours!");
-        var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), new CommitRequest()
-        {
-            Sha = branchRequest.Name,
-            Since = DateTime.Now.AddHours(-hoursRequest.Hours),
-        });
-        var commitsList = commits.ToList();
-        var files = new List<GitHubCommitFile>();
-        commitsList.ForEach(c =>
-        {
-            var commitWithFiles = GetCommitWithPaginatedFiles(input.RepositoryId, c.Sha).Result;
-            var commit = commitWithFiles.Item1;
+    //[Action("List added or modified files in X hours", Description = "List added or modified files in X hours")]
+    //public async Task<CommitFilesInfoResponse> ListAddedOrModifiedInHours(
+    //    [ActionParameter] GetRepositoryRequest input,
+    //    [ActionParameter] GetOptionalBranchRequest branchRequest,
+    //    [ActionParameter] AddedOrModifiedHoursRequest hoursRequest,
+    //    [ActionParameter] FolderInput folderInput)
+    //{
+    //    if (hoursRequest.Hours <= 0)
+    //        throw new ArgumentException("Specify more than 0 hours!");
+    //    var commits = await Client.Repository.Commit.GetAll(long.Parse(input.RepositoryId), new CommitRequest()
+    //    {
+    //        Sha = branchRequest.Name,
+    //        Since = DateTime.Now.AddHours(-hoursRequest.Hours),
+    //    });
+    //    var commitsList = commits.ToList();
+    //    var files = new List<GitHubCommitFile>();
+    //    commitsList.ForEach(c =>
+    //    {
+    //        var commitWithFiles = GetCommitWithPaginatedFiles(input.RepositoryId, c.Sha).Result;
+    //        var commit = commitWithFiles.Item1;
 
-            if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
-            (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
-                return;
-            else if (hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) &&
-            (hoursRequest.ExcludeAuthors.HasValue && hoursRequest.ExcludeAuthors.Value))
-                return;
-            else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
-                return;
-            files.AddRange(commitWithFiles.Item2.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
-        });
+    //        if (hoursRequest.Authors != null && !hoursRequest.Authors.Contains(commit.Author.Login) &&
+    //        (!hoursRequest.ExcludeAuthors.HasValue || !hoursRequest.ExcludeAuthors.Value))
+    //            return;
+    //        else if (hoursRequest.Authors != null && hoursRequest.Authors.Contains(commit.Author.Login) &&
+    //        (hoursRequest.ExcludeAuthors.HasValue && hoursRequest.ExcludeAuthors.Value))
+    //            return;
+    //        else if (hoursRequest.ExcludeMerge.HasValue && hoursRequest.ExcludeMerge.Value && c.Parents.Count > 1)
+    //            return;
+    //        files.AddRange(commitWithFiles.Item2.Where(x => new[] { "added", "modified" }.Contains(x.Status)).Where(f => folderInput.FolderPath is null || PushWebhooks.IsFilePathMatchingPattern(folderInput.FolderPath, f.Filename)));
+    //    });
 
-        return new(files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList());
-    }
+    //    return new(files.DistinctBy(x => x.Filename).Select(x => new CommitFileDto(x)).ToList());
+    //}
 
     //[Action("Download added or modified files in X hours as zip", Description = "Download added or modified files in X hours as zip")]
     //public async Task<FileReference> DownloadAddedOrModifiedInHours(  // previous return type ListAddedOrModifiedInHoursResponse
@@ -131,17 +131,17 @@ public class CommitActions : GithubActions
     //    return uploadedFile;
     //}
 
-    [Action("Get commit", Description = "Get commit by id")]
-    public async Task<FullCommitDto> GetCommit(
-        [ActionParameter] GetRepositoryRequest repositoryRequest,
-        [ActionParameter] GetCommitRequest input)
-    {
-        if (!long.TryParse(repositoryRequest.RepositoryId, out var intRepoId))
-            throw new("Wrong repository ID");
+    //[Action("Get commit", Description = "Get commit by id")]
+    //public async Task<FullCommitDto> GetCommit(
+    //    [ActionParameter] GetRepositoryRequest repositoryRequest,
+    //    [ActionParameter] GetCommitRequest input)
+    //{
+    //    if (!long.TryParse(repositoryRequest.RepositoryId, out var intRepoId))
+    //        throw new("Wrong repository ID");
 
-        var commit = await Client.Repository.Commit.Get(intRepoId, input.CommitId);
-        return new(commit);
-    }
+    //    var commit = await Client.Repository.Commit.Get(intRepoId, input.CommitId);
+    //    return new(commit);
+    //}
 
     [Action("Create or update file", Description = "Create or update file")]
     public async Task<SmallCommitDto> PushFile(
@@ -179,6 +179,7 @@ public class CommitActions : GithubActions
         return new(pushFileResult.Commit);
     }
 
+    // Remove and keep "Create or update file"
     [Action("Update file", Description = "Update file in repository")]
     public async Task<SmallCommitDto> UpdateFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,

@@ -11,19 +11,21 @@ namespace Apps.Github.Webhooks;
 [WebhookList]
 public class PushWebhooks
 {
-    [Webhook("On commit pushed", typeof(PushActionHandler), Description = "On commit pushed")]
-    public async Task<WebhookResponse<PushPayloadFlat>> CommitPushedHandler(WebhookRequest webhookRequest, [WebhookParameter] BranchInput branchInput)
-    {
-        var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
-        if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
-        if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<PushPayloadFlat>();
+    //[Webhook("On commit pushed", typeof(PushActionHandler), Description = "On commit pushed")]
+    //public async Task<WebhookResponse<PushPayloadFlat>> CommitPushedHandler(WebhookRequest webhookRequest, [WebhookParameter] BranchInput branchInput)
+    //{
+    //    var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
+    //    if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
+    //    if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<PushPayloadFlat>();
 
-        return new()
-        {
-            HttpResponseMessage = null,
-            Result = new(data)
-        };
-    }
+    //    return new()
+    //    {
+    //        HttpResponseMessage = null,
+    //        Result = new(data)
+    //    };
+    //}
+
+    // Todo: return a bit more information from the commit.
 
     [Webhook("On files added", typeof(PushActionHandler), Description = "On files added")]
     public async Task<WebhookResponse<FilesListResponse>> FilesAddedHandler(WebhookRequest webhookRequest,
