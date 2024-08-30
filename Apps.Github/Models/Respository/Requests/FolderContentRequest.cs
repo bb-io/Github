@@ -1,6 +1,4 @@
-﻿using Apps.Github.DataSourceHandlers;
-using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Dynamic;
+﻿using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.Github.Models.Respository.Requests;
 
@@ -21,4 +19,7 @@ public class FolderContentRequest
 
     [Display("Include subfolders")]
     public bool? IncludeSubfolders { get; set; }
+
+    [Display("Filter", Description = "Use the forward slash '/' to represent directory separator. Use '*' to represent wildcards in file and directory names. Use '**' to represent arbitrary directory depth.")]
+    public string? Filter { get; set; }
 }

@@ -1,16 +1,9 @@
 ﻿using Apps.Github.Actions.Base;
 using Apps.Github.Dtos;
 using Apps.Github.Models.PullRequest.Requests;
-using Apps.Github.Models.PullRequest.Responses;
-using Apps.Github.Models.Respository.Requests;
-using Apps.GitHub.Dtos;
-using Apps.GitHub.Models.Commit.Responses;
-using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using Octokit;
 
 namespace Apps.Github.Actions;
 
