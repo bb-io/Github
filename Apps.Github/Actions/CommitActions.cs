@@ -136,41 +136,41 @@ public class CommitActions : GithubActions
     //    return new(commit);
     //}
 
-    //[Action("Create or update file", Description = "Create or update file")]
-    //public async Task<SmallCommitDto> PushFile(
-    //    [ActionParameter] GetRepositoryRequest repositoryRequest,
-    //    [ActionParameter] GetOptionalBranchRequest branchRequest,
-    //    [ActionParameter] PushFileRequest input)
-    //{
-    //    var repContent = await new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(
-    //        new()
-    //        {
-    //            RepositoryId = repositoryRequest.RepositoryId,
-    //        }, branchRequest);
-    //    if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
-    //    {
-    //        return await UpdateFile(
-    //            repositoryRequest,
-    //            branchRequest,
-    //            new()
-    //            {
-    //                FileId = repContent.Items.First(p => p.Path == input.DestinationFilePath).Sha,
-    //                DestinationFilePath = input.DestinationFilePath,
-    //                File = input.File,
-    //                CommitMessage = input.CommitMessage
-    //            });
-    //    }
+    [Action("Create or update file", Description = "Create or update file")]
+    public async Task<SmallCommitDto> PushFile(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] PushFileRequest input)
+    {
+        var repContent = await new RepositoryActions(InvocationContext, _fileManagementClient).ListAllRepositoryContent(
+            new()
+            {
+                RepositoryId = repositoryRequest.RepositoryId,
+            }, branchRequest);
+        if (repContent.Items.Any(p => p.Path == input.DestinationFilePath)) // update in case of existing file
+        {
+            return await UpdateFile(
+                repositoryRequest,
+                branchRequest,
+                new()
+                {
+                    FileId = repContent.Items.First(p => p.Path == input.DestinationFilePath).Sha,
+                    DestinationFilePath = input.DestinationFilePath,
+                    File = input.File,
+                    CommitMessage = input.CommitMessage
+                });
+        }
 
-    //    var file = await _fileManagementClient.DownloadAsync(input.File);
-    //    var fileBytes = await file.GetByteData();
+        var file = await _fileManagementClient.DownloadAsync(input.File);
+        var fileBytes = await file.GetByteData();
 
-    //    var fileUpload =
-    //        new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), branchRequest.Name,
-    //            false);
-    //    var pushFileResult = await Client.Repository.Content
-    //        .CreateFile(long.Parse(repositoryRequest.RepositoryId), input.DestinationFilePath, fileUpload);
-    //    return new(pushFileResult.Commit);
-    //}
+        var fileUpload =
+            new Octokit.CreateFileRequest(input.CommitMessage, Convert.ToBase64String(fileBytes), branchRequest.Name,
+                false);
+        var pushFileResult = await Client.Repository.Content
+            .CreateFile(long.Parse(repositoryRequest.RepositoryId), input.DestinationFilePath, fileUpload);
+        return new(pushFileResult.Commit);
+    }
 
     //public async Task<SmallCommitDto> UpdateFile(
     //    [ActionParameter] GetRepositoryRequest repositoryRequest,

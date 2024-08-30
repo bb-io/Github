@@ -1,14 +1,14 @@
 ﻿using Blackbird.Applications.Sdk.Common;
 
-namespace Apps.Github.Models.Respository.Requests;
+namespace Apps.GitHub.Models.File.Requests;
 
-public class FolderContentRequest
+public class SearchFilesRequest
 {
-    public FolderContentRequest()
+    public SearchFilesRequest()
     {
     }
 
-    public FolderContentRequest(string? path, bool? includeSubfolders)
+    public SearchFilesRequest(string? path, bool? includeSubfolders)
     {
         Path = path;
         IncludeSubfolders = includeSubfolders;
