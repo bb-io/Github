@@ -13,12 +13,12 @@ public class OAuth2AuthorizeService : BaseInvocable, IOAuth2AuthorizeService
 
     public string GetAuthorizationUrl(Dictionary<string, string> values)
     {
-        string bridgeOauthUrl = $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/oauth";
+        string bridgeOauthUrl = "https://bridge.blackbird.io/api/AuthorizationCode/oauth";//$"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/oauth";
         const string oauthUrl = "https://github.com/login/oauth/authorize";
         var parameters = new Dictionary<string, string>
         {
             { "client_id", ApplicationConstants.ClientId },
-            { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
+            { "redirect_uri", "https://bridge.blackbird.io/api/AuthorizationCode/AuthorizationCode" },//$"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
             { "scope", ApplicationConstants.Scope },
             { "state", values["state"] },
             { "authorization_url", oauthUrl},

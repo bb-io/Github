@@ -27,7 +27,6 @@ public class RepositoryActions : GithubActions
     }
 
     //V2
-    // Add large file downloading using download_url parameter
     [Action("Download file", Description = "Download a file from a specified folder")]
     public async Task<FileReference> GetFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
