@@ -1,5 +1,7 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Apps.GitHub.Dtos;
+using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Utils.RestSharp;
+using Newtonsoft.Json;
 using RestSharp;
 
 namespace Apps.GitHub.Api;
@@ -16,7 +18,8 @@ public class GithubRestClient : BlackBirdRestClient
 
     protected override Exception ConfigureErrorException(RestResponse response)
     {
-        throw new NotImplementedException();
+        var error = JsonConvert.DeserializeObject<RestErrorDto>(response.Content);
+        return new GithubErrorException(int.Parse(error.Status), error.Message);
     }
 
     private static string GetAcessTokenKey(IEnumerable<AuthenticationCredentialsProvider> creds)

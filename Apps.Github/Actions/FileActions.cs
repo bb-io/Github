@@ -9,12 +9,12 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using System.Net.Mime;
 using Apps.GitHub.Models.File.Requests;
-using Apps.Github.Actions;
-using Apps.Github.Dtos;
 using Apps.Github.Models.Commit.Requests;
 using RestSharp;
-using System.Text;
 using Blackbird.Applications.Sdk.Utils.Extensions.Files;
+using Apps.GitHub.Dtos.Rest;
+using Apps.GitHub.Dtos;
+using Apps.GitHub.Extensions;
 
 namespace Apps.GitHub.Actions;
 
@@ -121,16 +121,37 @@ public class FileActions : GithubActions
     {
         var file = await _fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
         var fileBytes = await file.GetByteData();
-
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var filePath = createOrUpdateRequest.Folder + createOrUpdateRequest.File.Name;
-        var request = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}");
-        request.AddBody(new
+
+        var fileContentDto = new FileContentDto();
+        try
+        {
+            var getFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Get);
+            getFileRequest.AddGithubBranch(branchRequest);
+            fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
+        }
+        catch(GithubErrorException ex)
+        {
+            var createFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Put);
+            createFileRequest.AddBody(new
+            {
+                message = createOrUpdateRequest.CommitMessage,
+                content = Convert.ToBase64String(fileBytes)
+            });
+            createFileRequest.AddGithubBranch(branchRequest);
+            await ClientRest.ExecuteWithErrorHandling(createFileRequest);
+            return;
+        }
+        var updateFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Put);
+        updateFileRequest.AddGithubBranch(branchRequest);
+        updateFileRequest.AddBody(new
         {
             message = createOrUpdateRequest.CommitMessage,
-            content = Convert.ToBase64String(fileBytes)
+            content = Convert.ToBase64String(fileBytes),
+            sha = fileContentDto.Sha
         });
-        await ClientRest.ExecuteAsync(request);
+        await ClientRest.ExecuteWithErrorHandling(updateFileRequest);
     }
 
     [Action("Delete file", Description = "Delete file from repository")]
