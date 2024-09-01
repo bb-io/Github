@@ -20,5 +20,5 @@ public class GithubRestClient : BlackBirdRestClient
     }
 
     private static string GetAcessTokenKey(IEnumerable<AuthenticationCredentialsProvider> creds)
-        => $"Bearer {creds.First(x => x.KeyName == "access_token").Value}";
+        => $"Bearer {creds.First(x => x.KeyName == "Authorization").Value}";
 }
