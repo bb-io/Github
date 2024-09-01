@@ -9,6 +9,10 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using System.Net.Mime;
 using Apps.GitHub.Models.File.Requests;
+using Apps.Github.Actions;
+using Apps.Github.Dtos;
+using Apps.Github.Models.Commit.Requests;
+using RestSharp;
 
 namespace Apps.GitHub.Actions;
 
@@ -31,10 +35,10 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest downloadFileRequest)
     {
-        var repositoryInfo = await Client.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var fileInfo = string.IsNullOrEmpty(branchRequest.Name)
-            ? await Client.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath)
-            : await Client.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
+            ? await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath)
+            : await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
                 downloadFileRequest.FilePath, branchRequest.Name);
 
         ValidateFileResponse(fileInfo, downloadFileRequest.FilePath);
@@ -56,9 +60,9 @@ public class FileActions : GithubActions
         [ActionParameter] SearchFilesRequest folderContentRequest)
     {
         var folderContent = (string.IsNullOrEmpty(branchRequest.Name)
-            ? await Client.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),
+            ? await ClientSdk.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),
                 folderContentRequest.Path ?? "/")
-            : await Client.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId),
+            : await ClientSdk.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId),
                 folderContentRequest.Path ?? "/", branchRequest.Name)).ToList();
 
         var result = new SearchFileInFolderResponse(folderContent, folderContentRequest.Filter);
@@ -83,10 +87,10 @@ public class FileActions : GithubActions
     {
         try
         {
-            var repoInfo = await Client.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+            var repoInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
             var fileData = string.IsNullOrEmpty(branchRequest.Name)
-                ? await Client.Repository.Content.GetRawContent(repoInfo.Owner.Login, repoInfo.Name, getFileRequest.FilePath)
-                : await Client.Repository.Content.GetRawContentByRef(repoInfo.Owner.Login, repoInfo.Name,
+                ? await ClientSdk.Repository.Content.GetRawContent(repoInfo.Owner.Login, repoInfo.Name, getFileRequest.FilePath)
+                : await ClientSdk.Repository.Content.GetRawContentByRef(repoInfo.Owner.Login, repoInfo.Name,
                     getFileRequest.FilePath, branchRequest.Name);
 
             if (fileData == null)
@@ -107,22 +111,34 @@ public class FileActions : GithubActions
         }
     }
 
+    [Action("Create or update file", Description = "Create or update file")]
+    public async Task CreateOrUpdateFile(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest,
+        [ActionParameter] CreateOrUpdateFileRequest createOrUpdateRequest)
+    {
+        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var filePath = createOrUpdateRequest.Folder + createOrUpdateRequest.File.Name;
+        var request = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}");
+        await ClientRest.ExecuteAsync(request);
+    }
+
     [Action("Delete file", Description = "Delete file from repository")]
     public async Task DeleteFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DeleteFileRequest deleteFileRequest)
     {
-        var repositoryInfo = await Client.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var fileInfo = string.IsNullOrEmpty(branchRequest.Name)
-            ? await Client.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, deleteFileRequest.FilePath)
-            : await Client.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
+            ? await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, deleteFileRequest.FilePath)
+            : await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
                 deleteFileRequest.FilePath, branchRequest.Name);
 
         ValidateFileResponse(fileInfo, deleteFileRequest.FilePath);
 
         var fileDelete = new Octokit.DeleteFileRequest(deleteFileRequest.CommitMessage, fileInfo.First().Sha, branchRequest.Name);
-        await Client.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
+        await ClientSdk.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
             fileDelete);
     }
 

@@ -23,7 +23,7 @@ public class RepositoryActions : GithubActions
     [Action("Get repository issues", Description = "Get opened issues against repository")]
     public async Task<GetIssuesResponse> GetIssuesInRepository([ActionParameter] RepositoryRequest input)
     {
-        var issues = await Client.Issue.GetAllForRepository(long.Parse(input.RepositoryId));
+        var issues = await ClientSdk.Issue.GetAllForRepository(long.Parse(input.RepositoryId));
 
         return new()
         {

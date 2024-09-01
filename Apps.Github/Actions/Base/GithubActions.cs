@@ -1,4 +1,5 @@
-﻿using Blackbird.Applications.Sdk.Common;
+﻿using Apps.GitHub.Api;
+using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
@@ -9,10 +10,12 @@ public class GithubActions : BaseInvocable
     protected IEnumerable<AuthenticationCredentialsProvider> Creds =>
         InvocationContext.AuthenticationCredentialsProviders;
     
-    protected BlackbirdGithubClient Client { get; }
+    protected GithubOctokitClient ClientSdk { get; }
+    protected GithubRestClient ClientRest { get; }
     
     public GithubActions(InvocationContext invocationContext) : base(invocationContext)
     {
-        Client = new(Creds);
+        ClientSdk = new(Creds);
+        ClientRest = new(Creds);
     }
 }

@@ -3,14 +3,11 @@ using Blackbird.Applications.Sdk.Common.Files;
 
 namespace Apps.Github.Models.Commit.Requests;
 
-public class PushFileRequest
+public class CreateOrUpdateFileRequest
 {
-    // Folder dynamic input
-    [Display("Destination file path (e.g. \"Test/testFile.txt\")")]
-    public string DestinationFilePath { get; set; }
+    [Display("Folder")]
+    public string Folder { get; set; }
 
-
-    // Multiple file references
     [Display("File")]
     public FileReference File { get; set; }
 

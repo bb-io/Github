@@ -282,14 +282,14 @@ public class CommitActions : GithubActions
 
     public async Task<(GitHubCommit, List<GitHubCommitFile>)> GetCommitWithPaginatedFiles(string repositoryId, string commitSha)
     {
-        var baseCommit = await Client.Repository.Commit.Get(long.Parse(repositoryId), commitSha);
+        var baseCommit = await ClientSdk.Repository.Commit.Get(long.Parse(repositoryId), commitSha);
         var paginatedFiles = new List<GitHubCommitFile>();
         paginatedFiles.AddRange(baseCommit.Files);
         int page = 2;
         GitHubCommit paginateCommitFiles = null;
         do
         {
-            paginateCommitFiles = await Client.Repository.Commit.Get(long.Parse(repositoryId), $"{commitSha}?page={page}");
+            paginateCommitFiles = await ClientSdk.Repository.Commit.Get(long.Parse(repositoryId), $"{commitSha}?page={page}");
             paginatedFiles.AddRange(paginateCommitFiles.Files);
             ++page;
         }

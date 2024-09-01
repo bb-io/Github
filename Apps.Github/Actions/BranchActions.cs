@@ -28,7 +28,7 @@ public class BranchActions : GithubActions
         [ActionParameter] [Display("Branch name")]
         string branchNameRequest)
     {
-        var branches = await Client.Repository.Branch.GetAll(long.Parse(repositoryRequest.RepositoryId));
+        var branches = await ClientSdk.Repository.Branch.GetAll(long.Parse(repositoryRequest.RepositoryId));
         return branches.Any(x => x.Name == branchNameRequest);
     }
 
@@ -37,9 +37,8 @@ public class BranchActions : GithubActions
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] MergeBranchRequest input)
     {
-        var client = new BlackbirdGithubClient(Creds);
         var mergeRequest = new NewMerge(input.BaseBranch, input.HeadBranch) { CommitMessage = input.CommitMessage };
-        var merge = await client.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest);
+        var merge = await ClientSdk.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest);
         return new(merge);
     }
 
@@ -48,11 +47,10 @@ public class BranchActions : GithubActions
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] CreateBranchRequest input)
     {
-        var client = new BlackbirdGithubClient(Creds);
-        var master = await client.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId),
+        var master = await ClientSdk.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId),
             $"heads/{input.BaseBranchName}");
-        await client.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId),
+        await ClientSdk.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId),
             new("refs/heads/" + input.NewBranchName, master.Object.Sha));
-        return new(await client.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.NewBranchName));
+        return new(await ClientSdk.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.NewBranchName));
     }
 }

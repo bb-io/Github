@@ -1,11 +1,11 @@
-﻿using Blackbird.Applications.Sdk.Common;
+﻿using Apps.Github.Actions.Base;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Github.DataSourceHandlers;
 
-public class RepositoryDataHandler : BaseInvocable, IAsyncDataSourceHandler
+public class RepositoryDataHandler : GithubActions, IAsyncDataSourceHandler
 {
     private IEnumerable<AuthenticationCredentialsProvider> Creds =>
         InvocationContext.AuthenticationCredentialsProviders;
@@ -18,7 +18,7 @@ public class RepositoryDataHandler : BaseInvocable, IAsyncDataSourceHandler
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        var content = await new BlackbirdGithubClient(Creds).Repository.GetAllForCurrent();
+        var content = await ClientSdk.Repository.GetAllForCurrent();
 
         return content
             .Where(x => context.SearchString == null ||
