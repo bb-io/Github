@@ -122,7 +122,7 @@ public class FileActions : GithubActions
         var file = await _fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
         var fileBytes = await file.GetByteData();
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-        var filePath = createOrUpdateRequest.Folder + createOrUpdateRequest.File.Name;
+        var filePath = $"{createOrUpdateRequest.Folder.TrimEnd('/')}/{createOrUpdateRequest.File.Name.TrimStart('/')}";
 
         var fileContentDto = new FileContentDto();
         try

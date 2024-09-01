@@ -33,9 +33,11 @@ public class FolderPathDataHandler : GithubActions, IAsyncDataSourceHandler
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(RepositoryRequest.RepositoryId));
 
         var tree = await ClientSdk.Git.Tree.GetRecursive(long.Parse(RepositoryRequest.RepositoryId), BranchRequest?.Name ?? repositoryInfo.DefaultBranch);
-        return tree.Tree
+        var result = tree.Tree
             .Where(x => x.Type.Value == TreeType.Tree)
             .Where(x => context.SearchString == null || x.Path.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .Take(30).ToDictionary(x => x.Path, x => x.Path.Length > VisibleFilePathSymbolsNumber ? x.Path[^VisibleFilePathSymbolsNumber..] : x.Path);
+        result.Add("/", "/");
+        return result;
     }
 }
