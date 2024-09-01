@@ -13,6 +13,8 @@ using Apps.Github.Actions;
 using Apps.Github.Dtos;
 using Apps.Github.Models.Commit.Requests;
 using RestSharp;
+using System.Text;
+using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 
 namespace Apps.GitHub.Actions;
 
@@ -117,9 +119,17 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] CreateOrUpdateFileRequest createOrUpdateRequest)
     {
+        var file = await _fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
+        var fileBytes = await file.GetByteData();
+
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var filePath = createOrUpdateRequest.Folder + createOrUpdateRequest.File.Name;
         var request = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}");
+        request.AddBody(new
+        {
+            message = createOrUpdateRequest.CommitMessage,
+            content = Convert.ToBase64String(fileBytes)
+        });
         await ClientRest.ExecuteAsync(request);
     }
 
