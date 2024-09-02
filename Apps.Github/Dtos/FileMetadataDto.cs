@@ -10,6 +10,12 @@ public class FileMetadataDto
         Path = content.Path;
     }
 
+    public FileMetadataDto(TreeItem content)
+    {
+        Name = System.IO.Path.GetFileName(content.Path);
+        Path = content.Path;
+    }
+
     public string Name { get; set; }
 
     public string Path { get; set; }

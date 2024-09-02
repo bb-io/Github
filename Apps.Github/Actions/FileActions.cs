@@ -55,30 +55,50 @@ public class FileActions : GithubActions
     }
 
     
-    [Action("Search files in folder", Description = "Search files in folder")]
+    [Action("Search files in folder", Description = "Search files in folder. Note: the Github API limits to 1000 files per folder")]
     public async Task<SearchFileInFolderResponse> SearchFilesInFolder(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] SearchFilesRequest folderContentRequest)
     {
-        var folderContent = (string.IsNullOrEmpty(branchRequest.Name)
-            ? await ClientSdk.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),
-                folderContentRequest.Path ?? "/")
-            : await ClientSdk.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId),
-                folderContentRequest.Path ?? "/", branchRequest.Name)).ToList();
+        var repositoryId = long.Parse(repositoryRequest.RepositoryId);
 
-        var result = new SearchFileInFolderResponse(folderContent, folderContentRequest.Filter);
-
-        if (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value)
+        var reference = branchRequest.Name;        
+        if (reference == null)
         {
-            foreach (var folder in folderContent.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
-            {
-                var innerContent = await SearchFilesInFolder(repositoryRequest, branchRequest,
-                    new(folder.Path, true));
-                result.Files.AddRange(innerContent.Files);
-            }
+            var branchResult = await ClientSdk.Repository.Get(repositoryId);
+            reference = branchResult.DefaultBranch;
         }
-        return result;
+
+        if (folderContentRequest.Path != null)
+        {
+            reference = reference + ":" + folderContentRequest.Path;
+        }
+
+        var res = (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value) ? 
+            await ClientSdk.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), reference) : 
+            await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), reference);
+
+        return new SearchFileInFolderResponse(res, folderContentRequest.Path, folderContentRequest.Filter) { Truncated = res.Truncated };
+
+        //var folderContent = (string.IsNullOrEmpty(branchRequest.Name)
+        //    ? await ClientSdk.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),
+        //        folderContentRequest.Path ?? "/")
+        //    : await ClientSdk.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId),
+        //        folderContentRequest.Path ?? "/", branchRequest.Name)).ToList();
+
+        //var result = new SearchFileInFolderResponse(folderContent, folderContentRequest.Filter);
+
+        //if (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value)
+        //{
+        //    foreach (var folder in folderContent.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
+        //    {
+        //        var innerContent = await SearchFilesInFolder(repositoryRequest, branchRequest,
+        //            new(folder.Path, true));
+        //        result.Files.AddRange(innerContent.Files);
+        //    }
+        //}
+        //return result;
     }
 
     [Action("File exists", Description = "Check if file exists in repository")]

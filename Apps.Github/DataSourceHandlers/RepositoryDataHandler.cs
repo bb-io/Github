@@ -18,13 +18,13 @@ public class RepositoryDataHandler : GithubActions, IAsyncDataSourceHandler
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        var content = await ClientSdk.Repository.GetAllForCurrent();
+        var content = await ClientSdk.Repository.GetAllForCurrent(new Octokit.ApiOptions { PageSize = 100 });
 
         return content
             .Where(x => context.SearchString == null ||
                         x.Name.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(x => x.CreatedAt)
             .Take(20)
+            .OrderByDescending(x => x.CreatedAt)
             .ToDictionary(x => x.Id.ToString(), x => x.Name);
     }
 }

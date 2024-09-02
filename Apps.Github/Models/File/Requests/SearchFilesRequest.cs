@@ -14,10 +14,10 @@ public class SearchFilesRequest
         IncludeSubfolders = includeSubfolders;
     }
 
-    [Display("Folder path (e.g. \"Folder1/Folder2\")")]
+    [Display("Folder path", Description = "e.g. \"Folder1/Folder2\". The default path is the root folder.")]
     public string? Path { get; set; }
 
-    [Display("Include subfolders")]
+    [Display("Recursively include subfolders", Description = "If set, will also include all files in all subfolders to your path.")]
     public bool? IncludeSubfolders { get; set; }
 
     [Display("Filter", Description = "Use the forward slash '/' to represent directory separator. Use '*' to represent wildcards in file and directory names. Use '**' to represent arbitrary directory depth.")]
