@@ -1,4 +1,6 @@
-﻿using Blackbird.Applications.Sdk.Common;
+﻿using Apps.GitHub.DataSourceHandlers;
+using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.GitHub.Models.File.Requests;
 
@@ -14,7 +16,8 @@ public class SearchFilesRequest
         IncludeSubfolders = includeSubfolders;
     }
 
-    [Display("Folder path", Description = "e.g. \"Folder1/Folder2\". The default path is the root folder.")]
+    [Display("Folder", Description = "e.g. \"Folder1/Folder2\". The default path is the root folder.")]
+    [DataSource(typeof(FolderPathDataHandler))]
     public string? Path { get; set; }
 
     [Display("Recursively include subfolders", Description = "If set, will also include all files in all subfolders to your path.")]
