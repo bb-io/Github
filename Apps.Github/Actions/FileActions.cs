@@ -72,14 +72,14 @@ public class FileActions : GithubActions
 
         if (folderContentRequest.Path != null)
         {
-            reference = reference + ":" + folderContentRequest.Path;
+            reference = reference + ":" + folderContentRequest.Path.TrimEnd('/');
         }
 
         var res = (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value) ? 
             await ClientSdk.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), reference) : 
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), reference);
 
-        return new SearchFileInFolderResponse(res, folderContentRequest.Path, folderContentRequest.Filter) { Truncated = res.Truncated };
+        return new SearchFileInFolderResponse(res, folderContentRequest.Path?.TrimEnd('/'), folderContentRequest.Filter) { Truncated = res.Truncated };
 
         //var folderContent = (string.IsNullOrEmpty(branchRequest.Name)
         //    ? await ClientSdk.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),

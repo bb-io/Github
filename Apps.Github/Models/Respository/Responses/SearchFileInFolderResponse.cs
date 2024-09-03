@@ -21,7 +21,7 @@ namespace Apps.GitHub.Models.Respository.Responses
             var filteredFiles = !string.IsNullOrEmpty(wildcard) ? repositoryContent.Tree.Where(x => PushWebhooks.IsFilePathMatchingPattern(wildcard, x.Path)) : repositoryContent.Tree;
             Files = filteredFiles.Where(x => x.Type == TreeType.Blob).Select(x => new FileMetadataDto(x)).ToList();
 
-            if (path != null)
+            if (!string.IsNullOrEmpty(path))
             {
                 foreach (var file in Files)
                 {

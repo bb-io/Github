@@ -37,7 +37,7 @@ public class FolderPathDataHandler : GithubActions, IAsyncDataSourceHandler
             .Where(x => x.Type.Value == TreeType.Tree)
             .Where(x => context.SearchString == null || x.Path.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .Take(30).ToDictionary(x => x.Path, x => x.Path.Length > VisibleFilePathSymbolsNumber ? x.Path[^VisibleFilePathSymbolsNumber..] : x.Path);
-        result.Add("/", "/");
+        result.Add("/", "Repository root");
         return result;
     }
 }
