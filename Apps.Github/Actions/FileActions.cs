@@ -16,7 +16,7 @@ using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Extensions;
 using Apps.GitHub.Api;
-using SharpCompress.Common;
+using Octokit;
 
 namespace Apps.GitHub.Actions;
 
@@ -90,30 +90,11 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest getFileRequest)
     {
-        try
-        {
-            var repoInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-            var fileData = string.IsNullOrEmpty(branchRequest.Name)
-                ? await ClientSdk.Repository.Content.GetRawContent(repoInfo.Owner.Login, repoInfo.Name, getFileRequest.FilePath)
-                : await ClientSdk.Repository.Content.GetRawContentByRef(repoInfo.Owner.Login, repoInfo.Name,
-                    getFileRequest.FilePath, branchRequest.Name);
-
-            if (fileData == null)
-            {
-                return false;
-            }
-
-            return true;
-        }
-        catch (Exception e)
-        {
-            if (e.Message.Contains("Not Found"))
-            {
-                return false;
-            }
-
-            throw;
-        }
+        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var branchName = string.IsNullOrEmpty(branchRequest.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
+        var treeResponse =
+            await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(getFileRequest.FilePath)}");
+        return treeResponse.Tree.Any(x => x.Path == Path.GetFileName(getFileRequest.FilePath));
     }
 
     [Action("Create or update file", Description = "Create or update file")]
@@ -173,7 +154,7 @@ public class FileActions : GithubActions
         if(fileInfo == null)
             throw new ArgumentException($"File does not exist ({deleteFileRequest.FilePath})");
 
-        var fileDelete = new Octokit.DeleteFileRequest(deleteFileRequest.CommitMessage, fileInfo.Sha, branchRequest.Name);
+        var fileDelete = new Octokit.DeleteFileRequest(deleteFileRequest.CommitMessage, fileInfo.Sha, branchName);
         await ClientSdk.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
             fileDelete);
     }
