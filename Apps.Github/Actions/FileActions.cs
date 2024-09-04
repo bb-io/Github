@@ -16,7 +16,6 @@ using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Extensions;
 using Apps.GitHub.Api;
-using Octokit;
 
 namespace Apps.GitHub.Actions;
 
