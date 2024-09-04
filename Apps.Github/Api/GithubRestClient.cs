@@ -16,6 +16,12 @@ public class GithubRestClient : BlackBirdRestClient
         this.AddDefaultHeader("Authorization", GetAcessTokenKey(authenticationCredentialsProviders));
     }
 
+    public GithubRestClient(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, RestClientOptions restClientOptions)
+        : base(restClientOptions)
+    {
+        this.AddDefaultHeader("Authorization", GetAcessTokenKey(authenticationCredentialsProviders));
+    }
+
     protected override Exception ConfigureErrorException(RestResponse response)
     {
         var error = JsonConvert.DeserializeObject<RestErrorDto>(response.Content);

@@ -15,6 +15,7 @@ using Blackbird.Applications.Sdk.Utils.Extensions.Files;
 using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Extensions;
+using Apps.GitHub.Api;
 
 namespace Apps.GitHub.Actions;
 
@@ -80,25 +81,6 @@ public class FileActions : GithubActions
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), reference);
 
         return new SearchFileInFolderResponse(res, folderContentRequest.Path?.TrimEnd('/'), folderContentRequest.Filter) { Truncated = res.Truncated };
-
-        //var folderContent = (string.IsNullOrEmpty(branchRequest.Name)
-        //    ? await ClientSdk.Repository.Content.GetAllContents(long.Parse(repositoryRequest.RepositoryId),
-        //        folderContentRequest.Path ?? "/")
-        //    : await ClientSdk.Repository.Content.GetAllContentsByRef(long.Parse(repositoryRequest.RepositoryId),
-        //        folderContentRequest.Path ?? "/", branchRequest.Name)).ToList();
-
-        //var result = new SearchFileInFolderResponse(folderContent, folderContentRequest.Filter);
-
-        //if (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value)
-        //{
-        //    foreach (var folder in folderContent.Where(x => x.Type.Value == Octokit.ContentType.Dir).ToList())
-        //    {
-        //        var innerContent = await SearchFilesInFolder(repositoryRequest, branchRequest,
-        //            new(folder.Path, true));
-        //        result.Files.AddRange(innerContent.Files);
-        //    }
-        //}
-        //return result;
     }
 
     [Action("File exists", Description = "Check if file exists in repository")]
@@ -193,11 +175,37 @@ public class FileActions : GithubActions
             fileDelete);
     }
 
+    [Action("Download repository as zip", Description = "Download repository as zip")]
+    public async Task<FileReference> DownloadRepositoryZip(
+        [ActionParameter] GetRepositoryRequest repositoryRequest,
+        [ActionParameter] GetOptionalBranchRequest branchRequest)
+    {
+        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var branchRef = string.IsNullOrEmpty(branchRequest.Name) ? string.Empty : branchRequest.Name;
+        var getZipRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/zipball/{branchRef}", Method.Get);
+
+        var customRestClient = GetUnfollowRedirectsClient();
+        var getZipResponse = await customRestClient.ExecuteAsync(getZipRequest);
+
+        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, getZipResponse.Headers.First(x => x.Name == "Location").Value.ToString());
+        FileReference fileReference = new FileReference(httpRequestMessage, $"{repositoryInfo.Name}.zip", MediaTypeNames.Application.Zip);
+        return fileReference;
+    }
+
     private void ValidateFileResponse(IReadOnlyList<Octokit.RepositoryContent> repositoryContent, string filePath)
     {
         if (repositoryContent == null || repositoryContent?.Count == 0)
             throw new ArgumentException($"File does not exist ({filePath})");
         if (repositoryContent.First().Size == 0)
             throw new ArgumentException($"File is empty ({filePath})");
+    }
+
+    private GithubRestClient GetUnfollowRedirectsClient()
+    {
+        return new GithubRestClient(InvocationContext.AuthenticationCredentialsProviders, new()
+        {
+            BaseUrl = new Uri("https://api.github.com/repos"),
+            FollowRedirects = false,
+        });
     }
 }
