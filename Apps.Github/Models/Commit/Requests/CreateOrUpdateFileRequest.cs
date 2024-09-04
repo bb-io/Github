@@ -7,9 +7,9 @@ namespace Apps.Github.Models.Commit.Requests;
 
 public class CreateOrUpdateFileRequest
 {
-    [Display("Folder")]
-    [DataSource(typeof(FolderPathDataHandler))]
-    public string Folder { get; set; }
+    [Display("File path")]
+    //[DataSource(typeof(FolderPathDataHandler))]
+    public string FilePath { get; set; }
 
     [Display("File")]
     public FileReference File { get; set; }
