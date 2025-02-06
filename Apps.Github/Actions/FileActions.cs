@@ -16,6 +16,7 @@ using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Extensions;
 using Apps.GitHub.Api;
+using Microsoft.Extensions.Logging;
 
 namespace Apps.GitHub.Actions;
 
@@ -24,11 +25,13 @@ namespace Apps.GitHub.Actions;
 public class FileActions : GithubActions
 {
     private readonly IFileManagementClient _fileManagementClient;
+    private readonly ILogger<FileActions> _logger;
 
-    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
+    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient, ILogger<FileActions> logger)
         : base(invocationContext)
     {
         _fileManagementClient = fileManagementClient;
+        _logger = logger;
     }
 
    
@@ -38,21 +41,31 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest downloadFileRequest)
     {
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-        var fileInfo = string.IsNullOrEmpty(branchRequest.Name)
-            ? await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath)
-            : await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
-                downloadFileRequest.FilePath, branchRequest.Name);
+        try
+        {
+            var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+            var fileInfo = string.IsNullOrEmpty(branchRequest?.Name)
+                ? await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath)
+                : await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
+                    downloadFileRequest.FilePath, branchRequest?.Name);
 
-        ValidateFileResponse(fileInfo, downloadFileRequest.FilePath);
+            ValidateFileResponse(fileInfo, downloadFileRequest.FilePath);
 
-        var filename = Path.GetFileName(downloadFileRequest.FilePath);
-        if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
-            mimeType = MediaTypeNames.Application.Octet;
+            var filename = Path.GetFileName(downloadFileRequest.FilePath);
+            if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
+                mimeType = MediaTypeNames.Application.Octet;
 
-        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, fileInfo.First().DownloadUrl);
-        FileReference fileReference = new FileReference(httpRequestMessage, filename, mimeType);
-        return fileReference;
+            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, fileInfo.First().DownloadUrl);
+            FileReference fileReference = new FileReference(httpRequestMessage, filename, mimeType);
+            return fileReference;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Some error happened");
+            _logger.LogError(ex.Message,ex.StackTrace);
+            throw;
+        }
+       
     }
 
     
@@ -64,7 +77,7 @@ public class FileActions : GithubActions
     {
         var repositoryId = long.Parse(repositoryRequest.RepositoryId);
 
-        var reference = branchRequest.Name;        
+        var reference = branchRequest?.Name;        
         if (reference == null)
         {
             var branchResult = await ClientSdk.Repository.Get(repositoryId);
@@ -90,7 +103,7 @@ public class FileActions : GithubActions
         [ActionParameter] DownloadFileRequest getFileRequest)
     {
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-        var branchName = string.IsNullOrEmpty(branchRequest.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
+        var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
         var treeResponse =
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(getFileRequest.FilePath)}");
         return treeResponse.Tree.Any(x => x.Path == Path.GetFileName(getFileRequest.FilePath));
@@ -146,7 +159,7 @@ public class FileActions : GithubActions
         [ActionParameter] DeleteFileRequest deleteFileRequest)
     {
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-        var branchName = string.IsNullOrEmpty(branchRequest.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
+        var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
         var treeResponse = 
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(deleteFileRequest.FilePath)}");
         var fileInfo = treeResponse.Tree.FirstOrDefault(x => x.Path == Path.GetFileName(deleteFileRequest.FilePath));
@@ -164,7 +177,7 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest)
     {
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
-        var branchRef = string.IsNullOrEmpty(branchRequest.Name) ? string.Empty : branchRequest.Name;
+        var branchRef = string.IsNullOrEmpty(branchRequest?.Name) ? string.Empty : branchRequest.Name;
         var getZipRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/zipball/{branchRef}", Method.Get);
 
         var customRestClient = GetUnfollowRedirectsClient();
