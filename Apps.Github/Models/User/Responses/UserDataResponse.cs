@@ -19,7 +19,7 @@ public class UserDataResponse
         Following = input.Following;
         Hireable = input.Hireable;
         HtmlUrl = input.HtmlUrl;
-        Id = Convert.ToInt32(input.Id);
+        Id = input.Id;
         NodeId = input.NodeId;
         Location = input.Location;
         Login = input.Login;
@@ -59,7 +59,7 @@ public class UserDataResponse
 
     [Display("HTML url")]
     public string HtmlUrl { get; set; }
-    public int Id { get; set; }
+    public double Id { get; set; }
 
     [Display("GraphQL Node Id")]
     public string NodeId { get; set; }
