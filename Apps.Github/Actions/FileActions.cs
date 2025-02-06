@@ -155,7 +155,7 @@ public class FileActions : GithubActions
     public async Task DeleteFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
-        [ActionParameter] DeleteFileRequest deleteFileRequest)
+        [ActionParameter] Models.File.Requests.DeleteFileRequest deleteFileRequest)
     {
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
