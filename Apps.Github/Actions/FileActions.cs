@@ -62,7 +62,7 @@ public class FileActions : GithubActions
         catch (Exception ex)
         {
             _logger.LogError("Some error happened");
-            _logger.LogError("hereistheerror",ex.Message,ex.StackTrace);
+            _logger.LogError($"hereistheerror{ex.Message} {ex.StackTrace}");
             throw;
         }
        
