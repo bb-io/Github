@@ -19,7 +19,7 @@ public class UserDataResponse
         Following = input.Following;
         Hireable = input.Hireable;
         HtmlUrl = input.HtmlUrl;
-        Id = input.Id;
+        Id = Convert.ToInt32(input.Id);
         NodeId = input.NodeId;
         Location = input.Location;
         Login = input.Login;
