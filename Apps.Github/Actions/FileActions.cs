@@ -17,6 +17,8 @@ using Apps.GitHub.Dtos;
 using Apps.GitHub.Extensions;
 using Apps.GitHub.Api;
 using Microsoft.Extensions.Logging;
+using Octokit;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 
 namespace Apps.GitHub.Actions;
 
@@ -59,13 +61,10 @@ public class FileActions : GithubActions
             FileReference fileReference = new FileReference(httpRequestMessage, filename, mimeType);
             return fileReference;
         }
-        catch (Exception ex)
+        catch (NotFoundException ex)
         {
-            _logger.LogError("Some error happened");
-            _logger.LogError($"hereistheerror{ex.Message} {ex.GetType()} {ex.InnerException} {ex.StackTrace}");
-            throw;
+            throw new PluginApplicationException(ex.Message);
         }
-       
     }
 
     
