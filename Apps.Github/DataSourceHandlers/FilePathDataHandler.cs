@@ -2,13 +2,12 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Apps.Github.Models.Respository.Requests;
-using Apps.Github.Actions.Base;
 using Apps.GitHub.Models.Branch.Requests;
 using Octokit;
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class FilePathDataHandler : GithubActions, IAsyncDataSourceHandler
+public class FilePathDataHandler : GithubInvocable, IAsyncDataSourceHandler
 {
     public GetRepositoryRequest RepositoryRequest { get; set; }
     public GetOptionalBranchRequest BranchRequest { get; set; }

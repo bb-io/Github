@@ -1,5 +1,4 @@
-﻿using Apps.Github.Actions.Base;
-using Apps.GitHub.Models.Branch.Requests;
+﻿using Apps.GitHub.Models.Branch.Requests;
 using Apps.Github.Models.Respository.Requests;
 using Apps.GitHub.Models.Respository.Responses;
 using Blackbird.Applications.Sdk.Common;
@@ -24,7 +23,7 @@ namespace Apps.GitHub.Actions;
 
 //V2
 [ActionList]
-public class FileActions : GithubActions
+public class FileActions : GithubInvocable
 {
     private readonly IFileManagementClient _fileManagementClient;
     private readonly ILogger<FileActions> _logger;
@@ -43,13 +42,11 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest downloadFileRequest)
     {
-        try
-        {
             var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
             var fileInfo = string.IsNullOrEmpty(branchRequest?.Name)
-                ? await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath)
-                : await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
-                    downloadFileRequest.FilePath, branchRequest?.Name);
+                ? await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath))
+                : await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
+                    downloadFileRequest.FilePath, branchRequest?.Name));
 
             ValidateFileResponse(fileInfo, downloadFileRequest.FilePath);
 
@@ -60,11 +57,6 @@ public class FileActions : GithubActions
             var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, fileInfo.First().DownloadUrl);
             FileReference fileReference = new FileReference(httpRequestMessage, filename, mimeType);
             return fileReference;
-        }
-        catch (NotFoundException ex)
-        {
-            throw new PluginApplicationException(ex.Message);
-        }
     }
 
     
@@ -74,12 +66,12 @@ public class FileActions : GithubActions
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] SearchFilesRequest folderContentRequest)
     {
-        var repositoryId = long.Parse(repositoryRequest.RepositoryId);
+        var repositoryId = long.Parse(repositoryRequest.RepositoryId); // TODO: can we change the type to long?
 
         var reference = branchRequest?.Name;        
         if (reference == null)
         {
-            var branchResult = await ClientSdk.Repository.Get(repositoryId);
+            var branchResult = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(repositoryId));
             reference = branchResult.DefaultBranch;
         }
 
@@ -88,9 +80,9 @@ public class FileActions : GithubActions
             reference = reference + ":" + folderContentRequest.Path.TrimEnd('/');
         }
 
-        var res = (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value) ? 
-            await ClientSdk.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), reference) : 
-            await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), reference);
+        var res = (folderContentRequest.IncludeSubfolders.HasValue && folderContentRequest.IncludeSubfolders.Value) ?
+            await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.GetRecursive(long.Parse(repositoryRequest.RepositoryId), reference)) :
+            await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), reference));
 
         return new SearchFileInFolderResponse(res, folderContentRequest.Path?.TrimEnd('/'), folderContentRequest.Filter) { Truncated = res.Truncated };
     }
@@ -104,7 +96,7 @@ public class FileActions : GithubActions
         var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
         var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
         var treeResponse =
-            await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(getFileRequest.FilePath)}");
+            await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(getFileRequest.FilePath)}"));
         return treeResponse.Tree.Any(x => x.Path == Path.GetFileName(getFileRequest.FilePath));
     }
 
@@ -116,7 +108,7 @@ public class FileActions : GithubActions
     {
         var file = await _fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
         var fileBytes = await file.GetByteData();
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var filePath = string.IsNullOrWhiteSpace(Path.GetExtension(createOrUpdateRequest.FilePath)) ? 
             $"{createOrUpdateRequest.FilePath.TrimEnd('/')}/{createOrUpdateRequest.File.Name.TrimStart('/')}" :
             createOrUpdateRequest.FilePath;
@@ -182,7 +174,7 @@ public class FileActions : GithubActions
         var customRestClient = GetUnfollowRedirectsClient();
         var getZipResponse = await customRestClient.ExecuteAsync(getZipRequest);
 
-        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, getZipResponse.Headers.First(x => x.Name == "Location").Value.ToString());
+        var httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, getZipResponse?.Headers?.FirstOrDefault(x => x.Name == "Location")?.Value?.ToString());
         FileReference fileReference = new FileReference(httpRequestMessage, $"{repositoryInfo.Name}.zip", MediaTypeNames.Application.Zip);
         return fileReference;
     }
@@ -191,7 +183,7 @@ public class FileActions : GithubActions
     {
         if (repositoryContent == null || repositoryContent?.Count == 0)
             throw new ArgumentException($"File does not exist ({filePath})");
-        if (repositoryContent.First().Size == 0)
+        if (repositoryContent?.First().Size == 0)
             throw new ArgumentException($"File is empty ({filePath})");
     }
 

@@ -1,7 +1,7 @@
-﻿using Apps.Github.Actions.Base;
-using Apps.Github.Dtos;
+﻿using Apps.Github.Dtos;
 using Apps.Github.Models.Branch.Requests;
 using Apps.Github.Models.Respository.Requests;
+using Apps.GitHub;
 using Apps.GitHub.Models.Branch.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -12,7 +12,7 @@ using Octokit;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class BranchActions : GithubActions
+public class BranchActions : GithubInvocable
 {
     private readonly IFileManagementClient _fileManagementClient;
 
@@ -28,7 +28,7 @@ public class BranchActions : GithubActions
         [ActionParameter] [Display("Branch name")]
         string branchNameRequest)
     {
-        var branches = await ClientSdk.Repository.Branch.GetAll(long.Parse(repositoryRequest.RepositoryId));
+        var branches = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Branch.GetAll(long.Parse(repositoryRequest.RepositoryId)));
         return branches.Any(x => x.Name == branchNameRequest);
     }
 
@@ -38,7 +38,7 @@ public class BranchActions : GithubActions
         [ActionParameter] MergeBranchRequest input)
     {
         var mergeRequest = new NewMerge(input.BaseBranch, input.HeadBranch) { CommitMessage = input.CommitMessage };
-        var merge = await ClientSdk.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest);
+        var merge = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Merging.Create(long.Parse(repositoryRequest.RepositoryId), mergeRequest));
         return new(merge);
     }
 
@@ -47,8 +47,8 @@ public class BranchActions : GithubActions
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] CreateBranchRequest input)
     {
-        var master = await ClientSdk.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId),
-            $"heads/{input.BaseBranchName}");
+        var master = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId),
+            $"heads/{input.BaseBranchName}"));
         await ClientSdk.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId),
             new("refs/heads/" + input.NewBranchName, master.Object.Sha));
         return new(await ClientSdk.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.NewBranchName));

@@ -1,7 +1,7 @@
-﻿using Apps.Github.Actions.Base;
-using Apps.Github.Dtos;
+﻿using Apps.Github.Dtos;
 using Apps.Github.Models.PullRequest.Requests;
 using Apps.Github.Models.Respository.Requests;
+using Apps.GitHub;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -11,7 +11,7 @@ using Octokit;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class PullRequestActions : GithubActions
+public class PullRequestActions : GithubInvocable
 {
     private readonly IFileManagementClient _fileManagementClient;
 
@@ -27,7 +27,7 @@ public class PullRequestActions : GithubActions
         [ActionParameter] CreatePullRequest input)
     {
         var pullRequest = new NewPullRequest(input.Title, input.HeadBranch, input.BaseBranch) { Body = input.Description };
-        var pull = await ClientSdk.PullRequest.Create(long.Parse(repositoryRequest.RepositoryId), pullRequest);
+        var pull = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.PullRequest.Create(long.Parse(repositoryRequest.RepositoryId), pullRequest));
         return new(pull);
     }
 }

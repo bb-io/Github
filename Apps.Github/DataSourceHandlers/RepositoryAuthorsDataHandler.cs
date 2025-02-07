@@ -4,11 +4,11 @@ using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Apps.Github.Models.Respository.Requests;
 using Apps.Github.DataSourceHandlers;
-using Apps.Github.Actions.Base;
+
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class RepositoryAuthorsDataHandler : GithubActions, IAsyncDataSourceHandler
+public class RepositoryAuthorsDataHandler : GithubInvocable, IAsyncDataSourceHandler
 {
     public GetRepositoryRequest RepositoryRequest { get; set; }
 

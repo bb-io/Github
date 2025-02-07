@@ -1,6 +1,4 @@
-﻿using Apps.Github;
-using Apps.Github.Actions.Base;
-using Apps.Github.Models.Respository.Requests;
+﻿using Apps.Github.Models.Respository.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
@@ -8,7 +6,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class BranchDataHandler : GithubActions, IAsyncDataSourceHandler
+public class BranchDataHandler : GithubInvocable, IAsyncDataSourceHandler
 {
     private IEnumerable<AuthenticationCredentialsProvider> Creds =>
     InvocationContext.AuthenticationCredentialsProviders;
