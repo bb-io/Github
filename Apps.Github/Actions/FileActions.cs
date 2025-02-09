@@ -66,7 +66,7 @@ public class FileActions : GithubInvocable
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] SearchFilesRequest folderContentRequest)
     {
-        var repositoryId = long.Parse(repositoryRequest.RepositoryId); // TODO: can we change the type to long?
+        var repositoryId = long.Parse(repositoryRequest.RepositoryId);
 
         var reference = branchRequest?.Name;        
         if (reference == null)
