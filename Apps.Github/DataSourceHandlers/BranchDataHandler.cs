@@ -2,15 +2,13 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class BranchDataHandler : GithubInvocable, IAsyncDataSourceHandler
+public class BranchDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
 {
-    private IEnumerable<AuthenticationCredentialsProvider> Creds =>
-    InvocationContext.AuthenticationCredentialsProviders;
-
     private GetRepositoryRequest RepositoryRequest { get; set; }
 
     public BranchDataHandler(InvocationContext invocationContext, [ActionParameter] GetRepositoryRequest repositoryRequest) : base(invocationContext)
@@ -18,12 +16,10 @@ public class BranchDataHandler : GithubInvocable, IAsyncDataSourceHandler
         RepositoryRequest = repositoryRequest;
     }
 
-    public async Task<Dictionary<string, string>> GetDataAsync(
-        DataSourceContext context,
-        CancellationToken cancellationToken)
+    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
     {
         if (RepositoryRequest == null || string.IsNullOrWhiteSpace(RepositoryRequest.RepositoryId))
-            throw new ArgumentException("Please, specify repository first");
+            throw new PluginMisconfigurationException("Please, specify repository first");
 
         var branches = await ClientSdk.Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId));
 
@@ -31,6 +27,6 @@ public class BranchDataHandler : GithubInvocable, IAsyncDataSourceHandler
             .Where(x => context.SearchString == null ||
                         x.Name.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .Take(20)
-            .ToDictionary(x => x.Name, x => x.Name);
+            .Select(x => new DataSourceItem(x.Name, x.Name)); //TODO name + name looks unintentional
     }
 }
