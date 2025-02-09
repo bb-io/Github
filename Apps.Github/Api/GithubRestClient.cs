@@ -24,8 +24,8 @@ public class GithubRestClient : BlackBirdRestClient
 
     protected override Exception ConfigureErrorException(RestResponse response)
     {
-        var error = JsonConvert.DeserializeObject<RestErrorDto>(response.Content);
-        return new GithubErrorException(int.Parse(error.Status), error.Message);
+        var error = JsonConvert.DeserializeObject<RestErrorDto>(response!.Content!);
+        return new GithubErrorException(int.Parse(error!.Status), error!.Message);
     }
 
     private static string GetAcessTokenKey(IEnumerable<AuthenticationCredentialsProvider> creds)
