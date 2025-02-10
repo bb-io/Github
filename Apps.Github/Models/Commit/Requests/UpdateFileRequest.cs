@@ -2,7 +2,7 @@
 
 namespace Apps.Github.Models.Commit.Requests;
 
-public class UpdateFileRequest : PushFileRequest
+public class UpdateFileRequest : CreateOrUpdateFileRequest
 {
     [Display("File ID (Sha)")]
     public string? FileId { get; set; }

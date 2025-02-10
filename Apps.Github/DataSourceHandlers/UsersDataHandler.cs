@@ -1,28 +1,21 @@
-﻿using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Apps.GitHub;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
-namespace Apps.Github.DataSourceHandlers
+namespace Apps.Github.DataSourceHandlers;
+
+public class UsersDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
 {
-    public class UsersDataHandler : BaseInvocable, IAsyncDataSourceHandler
+    public UsersDataHandler(InvocationContext invocationContext) : base(invocationContext) { }
+
+      async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
     {
-        private IEnumerable<AuthenticationCredentialsProvider> Creds =>
-        InvocationContext.AuthenticationCredentialsProviders;
+        if (string.IsNullOrWhiteSpace(context.SearchString))
+            return new List<DataSourceItem>();
 
-        public UsersDataHandler(InvocationContext invocationContext) : base(invocationContext)
-        {
-        }
+        var content = await ClientSdk.Search.SearchUsers(new(context.SearchString));
 
-        public async Task<Dictionary<string, string>> GetDataAsync(
-            DataSourceContext context,
-            CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(context.SearchString))
-                return new();
 
-            var content = await new BlackbirdGithubClient(Creds).Search.SearchUsers(new(context.SearchString));
-            return content.Items.Take(30).ToDictionary(x => x.Login, x => $"{x.Login}");
-        }
+        return content.Items.Take(30).Select(x => new DataSourceItem(x.Login, $"{x.Login}"));
     }
 }

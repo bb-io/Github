@@ -1,4 +1,5 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Apps.GitHub.Api;
+using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
 namespace Apps.Github.Connections
@@ -8,7 +9,7 @@ namespace Apps.Github.Connections
         public async ValueTask<ConnectionValidationResponse> ValidateConnection(
             IEnumerable<AuthenticationCredentialsProvider> authProviders, CancellationToken cancellationToken)
         {
-            var client = new BlackbirdGithubClient(authProviders);
+            var client = new GithubOctokitClient(authProviders);
 
             try
             {

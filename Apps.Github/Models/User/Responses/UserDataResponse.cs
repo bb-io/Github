@@ -59,7 +59,7 @@ public class UserDataResponse
 
     [Display("HTML url")]
     public string HtmlUrl { get; set; }
-    public int Id { get; set; }
+    public double Id { get; set; }
 
     [Display("GraphQL Node Id")]
     public string NodeId { get; set; }

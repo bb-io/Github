@@ -1,39 +1,40 @@
 ﻿using Apps.Github.DataSourceHandlers;
 using Apps.Github.Models.User.Requests;
 using Apps.Github.Models.User.Responses;
+using Apps.GitHub;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class UserActions
+public class UserActions : GithubInvocable
 {
-    [Action("Get user by username", Description = "Get information about specific user")]
-    public async Task<UserDataResponse> GetUserData(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] UserDataRequest input)
+    public UserActions(InvocationContext invocationContext) : base(invocationContext)
     {
-        var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var user = await githubClient.User.Get(input.Username);
+    }
+
+    [Action("Get user by username", Description = "Get information about specific user")]
+    public async Task<UserDataResponse> GetUserData([ActionParameter] UserDataRequest input)
+    {
+        var user = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.User.Get(input.Username));
         return new(user);
     }
 
     [Action("Get user", Description = "Get information about specific user")]
-    public async Task<UserDataResponse> GetUser(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+    public async Task<UserDataResponse> GetUser(
         [ActionParameter] [Display("Username")] [DataSource(typeof(UsersDataHandler))] string username)
     {
-        var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var user = await githubClient.User.Get(username);
+        var user = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.User.Get(username));
         return new(user);
     }
 
     [Action("Get my user data", Description = "Get my user data")]
-    public async Task<UserDataResponse> GetMyUser(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
+    public async Task<UserDataResponse> GetMyUser()
     {
-        var githubClient = new BlackbirdGithubClient(authenticationCredentialsProviders);
-        var user = await githubClient.User.Current();
+        var user = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.User.Current());
         return new(user);
     }
 }

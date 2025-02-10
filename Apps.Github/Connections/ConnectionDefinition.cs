@@ -12,7 +12,6 @@ public class ConnectionDefinition : IConnectionDefinition
         {
             Name = "OAuth",
             AuthenticationType = ConnectionAuthenticationType.OAuth2,
-            ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
             }
@@ -23,7 +22,6 @@ public class ConnectionDefinition : IConnectionDefinition
     {
         var token = values.First(v => v.Key == "access_token");
         yield return new(
-            AuthenticationCredentialsRequestLocation.None,
             "Authorization",
             $"{token.Value}"
         );

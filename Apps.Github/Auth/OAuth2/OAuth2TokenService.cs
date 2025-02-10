@@ -39,7 +39,7 @@ public class OAuth2TokenService : BaseInvocable, IOAuth2TokenService
             { "client_id", ApplicationConstants.ClientId },
             { "client_secret", ApplicationConstants.ClientSecret },
             { "code", code },
-            { "redirect_uri", $"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
+            { "redirect_uri", "https://bridge.blackbird.io/api/AuthorizationCode" }//$"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/AuthorizationCode" },
         };
         return await RequestToken(bodyParameters, cancellationToken);
     }
