@@ -120,7 +120,7 @@ public class FileActions : GithubInvocable
             getFileRequest.AddGithubBranch(branchRequest);
             fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
         }
-        catch(GithubErrorException ex)
+        catch(GithubErrorException)
         {
             var createFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Put);
             createFileRequest.AddBody(new
