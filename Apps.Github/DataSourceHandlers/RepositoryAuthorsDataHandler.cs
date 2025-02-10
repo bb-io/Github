@@ -14,7 +14,7 @@ public class RepositoryAuthorsDataHandler : GithubInvocable, IAsyncDataSourceIte
                 return new List<DataSourceItem>();
         }
 
-        var contributors = await ClientSdk.Repository.GetAllContributors(long.Parse(context.SearchString));
+        var contributors = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.GetAllContributors(long.Parse(context.SearchString)));
 
         return contributors.Where(x => context.SearchString == null || x.Login.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
                       .Take(30).Select(x => new DataSourceItem(x.Login, $"{x.Login}"));

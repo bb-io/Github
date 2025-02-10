@@ -49,8 +49,8 @@ public class BranchActions : GithubInvocable
     {
         var master = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Reference.Get(long.Parse(repositoryRequest.RepositoryId),
             $"heads/{input.BaseBranchName}"));
-        await ClientSdk.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId),
-            new("refs/heads/" + input.NewBranchName, master.Object.Sha));
-        return new(await ClientSdk.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.NewBranchName));
+        await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Reference.Create(long.Parse(repositoryRequest.RepositoryId),
+            new("refs/heads/" + input.NewBranchName, master.Object.Sha)));
+        return new(await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Branch.Get(long.Parse(repositoryRequest.RepositoryId), input.NewBranchName)));
     }
 }
