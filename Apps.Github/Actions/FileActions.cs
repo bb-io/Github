@@ -155,7 +155,7 @@ public class FileActions : GithubInvocable
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(deleteFileRequest.FilePath)}");
         var fileInfo = treeResponse.Tree.FirstOrDefault(x => x.Path == Path.GetFileName(deleteFileRequest.FilePath));
         if(fileInfo == null)
-            throw new ArgumentException($"File does not exist ({deleteFileRequest.FilePath})");
+            throw new PluginApplicationException($"File does not exist ({deleteFileRequest.FilePath})");
 
         var fileDelete = new Octokit.DeleteFileRequest(deleteFileRequest.CommitMessage, fileInfo.Sha, branchName);
         await ClientSdk.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
