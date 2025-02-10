@@ -42,7 +42,7 @@ public class FileActions : GithubInvocable
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest downloadFileRequest)
     {
-            var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+            var repositoryInfo = await ExecuteWithErrorHandlingAsync(async ()=> await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId))); //not found file needs to be addressed
             var fileInfo = string.IsNullOrEmpty(branchRequest?.Name)
                 ? await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Content.GetAllContents(repositoryInfo.Owner.Login, repositoryInfo.Name, downloadFileRequest.FilePath))
                 : await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Content.GetAllContentsByRef(repositoryInfo.Owner.Login, repositoryInfo.Name,
@@ -149,7 +149,7 @@ public class FileActions : GithubInvocable
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] Models.File.Requests.DeleteFileRequest deleteFileRequest)
     {
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
         var treeResponse = 
             await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(deleteFileRequest.FilePath)}");
@@ -167,7 +167,7 @@ public class FileActions : GithubInvocable
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest)
     {
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var branchRef = string.IsNullOrEmpty(branchRequest?.Name) ? string.Empty : branchRequest.Name;
         var getZipRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/zipball/{branchRef}", Method.Get);
 
@@ -182,9 +182,9 @@ public class FileActions : GithubInvocable
     private void ValidateFileResponse(IReadOnlyList<Octokit.RepositoryContent> repositoryContent, string filePath)
     {
         if (repositoryContent == null || repositoryContent?.Count == 0)
-            throw new ArgumentException($"File does not exist ({filePath})");
+            throw new PluginApplicationException($"File does not exist ({filePath})");
         if (repositoryContent?.First().Size == 0)
-            throw new ArgumentException($"File is empty ({filePath})");
+            throw new PluginApplicationException($"File is empty ({filePath})");
     }
 
     private GithubRestClient GetUnfollowRedirectsClient()
