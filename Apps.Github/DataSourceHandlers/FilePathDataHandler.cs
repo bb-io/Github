@@ -28,9 +28,9 @@ public class FilePathDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
         if (string.IsNullOrEmpty(RepositoryRequest.RepositoryId))
             throw new PluginMisconfigurationException("Please, specify repository first");
 
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(RepositoryRequest.RepositoryId));
+        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(RepositoryRequest.RepositoryId)));
 
-        var tree = await ClientSdk.Git.Tree.GetRecursive(long.Parse(RepositoryRequest.RepositoryId), BranchRequest?.Name ?? repositoryInfo.DefaultBranch);
+        var tree = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.GetRecursive(long.Parse(RepositoryRequest.RepositoryId), BranchRequest?.Name ?? repositoryInfo.DefaultBranch));
         return tree.Tree
             .Where(x => x.Type.Value == TreeType.Blob)
             .Where(x => context.SearchString == null || x.Path.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))

@@ -12,7 +12,7 @@ public class RepositoryDataHandler : GithubInvocable, IAsyncDataSourceItemHandle
     async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
     {
         {
-            var content = await ClientSdk.Repository.GetAllForCurrent(new Octokit.ApiOptions { PageSize = 100 });
+            var content = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.GetAllForCurrent(new Octokit.ApiOptions { PageSize = 100 }));
 
             return content
                 .Where(x => context.SearchString == null ||

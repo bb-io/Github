@@ -21,7 +21,7 @@ public class BranchDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
         if (RepositoryRequest == null || string.IsNullOrWhiteSpace(RepositoryRequest.RepositoryId))
             throw new PluginMisconfigurationException("Please, specify repository first");
 
-        var branches = await ClientSdk.Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId));
+        var branches = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId)));
 
         return branches
             .Where(x => context.SearchString == null ||

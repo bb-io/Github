@@ -93,7 +93,7 @@ public class FileActions : GithubInvocable
         [ActionParameter] GetOptionalBranchRequest branchRequest,
         [ActionParameter] DownloadFileRequest getFileRequest)
     {
-        var repositoryInfo = await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId));
+        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
         var treeResponse =
             await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(getFileRequest.FilePath)}"));
@@ -151,15 +151,15 @@ public class FileActions : GithubInvocable
     {
         var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var branchName = string.IsNullOrEmpty(branchRequest?.Name) ? repositoryInfo.DefaultBranch : branchRequest.Name;
-        var treeResponse = 
-            await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(deleteFileRequest.FilePath)}");
+        var treeResponse =
+             await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Git.Tree.Get(long.Parse(repositoryRequest.RepositoryId), $"{branchName}:{Path.GetDirectoryName(deleteFileRequest.FilePath)}"));
         var fileInfo = treeResponse.Tree.FirstOrDefault(x => x.Path == Path.GetFileName(deleteFileRequest.FilePath));
         if(fileInfo == null)
             throw new PluginApplicationException($"File does not exist ({deleteFileRequest.FilePath})");
 
         var fileDelete = new Octokit.DeleteFileRequest(deleteFileRequest.CommitMessage, fileInfo.Sha, branchName);
-        await ClientSdk.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
-            fileDelete);
+        await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Content.DeleteFile(long.Parse(repositoryRequest.RepositoryId), deleteFileRequest.FilePath,
+            fileDelete));
     }
 
     [Action("Download repository as zip", Description = "Download repository as zip")]
