@@ -356,3 +356,6 @@ healthchecksdb
 *.env
 /Apps.Github/ApplicationConstants.cs
 /ConsoleApp1
+
+
+appsettings.json
