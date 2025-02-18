@@ -26,13 +26,11 @@ namespace Apps.GitHub.Actions;
 public class FileActions : GithubInvocable
 {
     private readonly IFileManagementClient _fileManagementClient;
-    private readonly ILogger<FileActions> _logger;
 
-    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient, ILogger<FileActions> logger)
+    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
         : base(invocationContext)
     {
         _fileManagementClient = fileManagementClient;
-        _logger = logger;
     }
 
    
