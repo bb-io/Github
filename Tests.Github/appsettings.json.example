@@ -1,6 +1,6 @@
 {
   "ConnectionDefinition": {
-    "Authorization": "Bearer [YOUR_ACTUAL_TOKEN]" // Create yours here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
+    "Authorization": "[YOUR_ACTUAL_TOKEN]" // Create your personal access token here: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens
   },
   "TestFolder": "TestFiles"
 }
