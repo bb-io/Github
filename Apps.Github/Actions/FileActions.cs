@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Octokit;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Apps.GitHub.Actions;
 
@@ -119,7 +120,17 @@ public class FileActions : GithubInvocable
         {
             var getFileRequest = new RestRequest(url, Method.Get);
             getFileRequest.AddGithubBranch(branchRequest);
-            fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
+            try
+            {
+                fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
+            }
+            catch (GithubErrorException ex)
+            {
+                if (ex.ErrorCode!=404)
+                {
+                    throw;
+                }
+            }
 
             var createFileRequest = new RestRequest(url, Method.Put);
             createFileRequest.AddBody(new
