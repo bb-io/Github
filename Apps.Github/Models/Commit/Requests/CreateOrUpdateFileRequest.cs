@@ -9,7 +9,7 @@ public class CreateOrUpdateFileRequest
 {
     [Display("File path")]
     //[DataSource(typeof(FolderPathDataHandler))]
-    public string FilePath { get; set; }
+    public string? FilePath { get; set; }
 
     [Display("File")]
     public FileReference File { get; set; }

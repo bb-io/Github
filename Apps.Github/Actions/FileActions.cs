@@ -18,6 +18,8 @@ using Apps.GitHub.Api;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Blackbird.Applications.Sdk.Common.Exceptions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Apps.GitHub.Actions;
 
@@ -26,13 +28,11 @@ namespace Apps.GitHub.Actions;
 public class FileActions : GithubInvocable
 {
     private readonly IFileManagementClient _fileManagementClient;
-    private readonly ILogger<FileActions> _logger;
 
-    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient, ILogger<FileActions> logger)
+    public FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
         : base(invocationContext)
     {
         _fileManagementClient = fileManagementClient;
-        _logger = logger;
     }
 
    
@@ -109,38 +109,49 @@ public class FileActions : GithubInvocable
         var file = await _fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
         var fileBytes = await file.GetByteData();
         var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
-        var filePath = string.IsNullOrWhiteSpace(Path.GetExtension(createOrUpdateRequest.FilePath)) ? 
-            $"{createOrUpdateRequest.FilePath.TrimEnd('/')}/{createOrUpdateRequest.File.Name.TrimStart('/')}" :
-            createOrUpdateRequest.FilePath;
+        var filePath = string.IsNullOrWhiteSpace(Path.GetExtension(createOrUpdateRequest?.FilePath)) ?
+                        $"{createOrUpdateRequest?.FilePath?.TrimEnd('/')}/{createOrUpdateRequest?.File?.Name?.TrimStart('/')}" :
+                        createOrUpdateRequest?.FilePath;
+        filePath = filePath?.TrimStart('/');
+        var url = $"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}";
 
         var fileContentDto = new FileContentDto();
         try
         {
-            var getFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Get);
+            var getFileRequest = new RestRequest(url, Method.Get);
             getFileRequest.AddGithubBranch(branchRequest);
-            fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
-        }
-        catch(GithubErrorException)
-        {
-            var createFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Put);
+            try
+            {
+                fileContentDto = await ClientRest.ExecuteWithErrorHandling<FileContentDto>(getFileRequest);
+            }
+            catch (GithubErrorException ex)
+            {
+                if (ex.ErrorCode!=404)
+                {
+                    throw;
+                }
+            }
+
+            var createFileRequest = new RestRequest(url, Method.Put);
             createFileRequest.AddBody(new
             {
-                message = createOrUpdateRequest.CommitMessage,
-                content = Convert.ToBase64String(fileBytes)
+                message = createOrUpdateRequest?.CommitMessage,
+                content = Convert.ToBase64String(fileBytes),
+                sha = fileContentDto?.Sha ?? string.Empty
+
             });
             createFileRequest.AddGithubBranch(branchRequest);
-            await ClientRest.ExecuteWithErrorHandling(createFileRequest);
-            return;
+            var response = await ClientRest.ExecuteWithErrorHandling(createFileRequest);
         }
-        var updateFileRequest = new RestRequest($"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}", Method.Put);
-        updateFileRequest.AddGithubBranch(branchRequest);
-        updateFileRequest.AddBody(new
+        catch (GithubErrorException ex)
         {
-            message = createOrUpdateRequest.CommitMessage,
-            content = Convert.ToBase64String(fileBytes),
-            sha = fileContentDto.Sha
-        });
-        await ClientRest.ExecuteWithErrorHandling(updateFileRequest);
+            throw new PluginApplicationException($"Error creating or updating file: {ex.Message}");
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new PluginApplicationException($"Error creating or updating file: {ex.Message}");
+
+        }
     }
 
     [Action("Delete file", Description = "Delete file from repository")]
