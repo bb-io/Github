@@ -2,11 +2,7 @@
 
 namespace Apps.Github.Dtos;
 
-public class MergeDto
+public class MergeDto(Merge source)
 {
-    public MergeDto(Merge source) {
-        Id = source.Ref;
-    }
-
-    public string Id { get; set; }
+    public string Id { get; set; } = source.Ref;
 }

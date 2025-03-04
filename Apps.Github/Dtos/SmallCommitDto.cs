@@ -5,9 +5,14 @@ namespace Apps.Github.Dtos;
 
 public class SmallCommitDto
 {
+    [Display("Commit ID")]
     public string Id { get; set; }
-    [Display("Author login")] public string AuthorLogin { get; set; }
+    
+    [Display("Author login")] 
+    public string AuthorLogin { get; set; }
+    
     public string Url { get; set; }
+    
     public string Message { get; set; }
     
     public SmallCommitDto(GitHubCommit source)

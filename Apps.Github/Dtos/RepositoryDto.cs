@@ -3,24 +3,16 @@ using Octokit;
 
 namespace Apps.Github.Dtos;
 
-public class RepositoryDto
+public class RepositoryDto(Repository source)
 {
-    public RepositoryDto(Repository source)
-    {
-        Id = source.Id.ToString();
-        Name = source.Name;
-        OwnerLogin = source.Owner.Login;
-        CreatedAt = source.CreatedAt.DateTime;
-    }
-
     [Display("ID")]
-    public string Id { get; set; }
+    public string Id { get; set; } = source.Id.ToString();
 
-    public string Name { get; set; }
-        
+    public string Name { get; set; } = source.Name;
+
     [Display("Created at")]
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = source.CreatedAt.DateTime;
 
     [Display("Owner logged in?")]
-    public string OwnerLogin { get; set; }
+    public string OwnerLogin { get; set; } = source.Owner.Login;
 }

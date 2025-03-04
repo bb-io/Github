@@ -2,7 +2,8 @@
 
 public class RestErrorDto
 {
-    public string Message { get; set; }
-    public string DocumentationUrl { get; set; }
-    public string Status { get; set; }
+    public string Message { get; set; } = string.Empty;
+    
+    public string DocumentationUrl { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
 }

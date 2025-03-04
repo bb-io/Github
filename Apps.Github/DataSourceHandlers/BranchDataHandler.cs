@@ -7,26 +7,27 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class BranchDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
+public class BranchDataHandler(
+    InvocationContext invocationContext,
+    [ActionParameter] GetRepositoryRequest repositoryRequest)
+    : GithubInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    private GetRepositoryRequest RepositoryRequest { get; set; }
+    private GetRepositoryRequest RepositoryRequest { get; set; } = repositoryRequest;
 
-    public BranchDataHandler(InvocationContext invocationContext, [ActionParameter] GetRepositoryRequest repositoryRequest) : base(invocationContext)
-    {
-        RepositoryRequest = repositoryRequest;
-    }
-
-    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
+    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context,
+        CancellationToken cancellationToken)
     {
         if (RepositoryRequest == null || string.IsNullOrWhiteSpace(RepositoryRequest.RepositoryId))
+        {
             throw new PluginMisconfigurationException("Please, specify repository first");
+        }
 
-        var branches = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId)));
+        var branches = await ExecuteWithErrorHandlingAsync(async () =>
+            await ClientSdk.Repository.Branch.GetAll(long.Parse(RepositoryRequest.RepositoryId)));
 
         return branches
             .Where(x => context.SearchString == null ||
                         x.Name.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
-            .Take(20)
             .Select(x => new DataSourceItem(x.Name, x.Name)); //TODO name + name looks unintentional
     }
 }

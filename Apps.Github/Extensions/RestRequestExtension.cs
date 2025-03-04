@@ -8,7 +8,10 @@ public static class RestRequestExtension
     public static RestRequest AddGithubBranch(this RestRequest request, GetOptionalBranchRequest branch)
     {
         if(!string.IsNullOrEmpty(branch?.Name))
+        {
             request.AddQueryParameter("ref", branch.Name);
+        }
+        
         return request;
     }
 }

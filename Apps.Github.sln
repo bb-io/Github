@@ -5,8 +5,6 @@ VisualStudioVersion = 17.5.33424.131
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Apps.GitHub", "Apps.Github\Apps.GitHub.csproj", "{D551EDAA-682C-42E4-9E95-3D61079F8D6A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{82B44620-431D-4ED9-BB8A-9472D879DD18}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Github", "Tests.Github\Tests.Github.csproj", "{569234DD-F048-49F3-8FD4-5120669BCAD3}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{D551EDAA-682C-42E4-9E95-3D61079F8D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D551EDAA-682C-42E4-9E95-3D61079F8D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D551EDAA-682C-42E4-9E95-3D61079F8D6A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82B44620-431D-4ED9-BB8A-9472D879DD18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82B44620-431D-4ED9-BB8A-9472D879DD18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{82B44620-431D-4ED9-BB8A-9472D879DD18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{82B44620-431D-4ED9-BB8A-9472D879DD18}.Release|Any CPU.Build.0 = Release|Any CPU
 		{569234DD-F048-49F3-8FD4-5120669BCAD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{569234DD-F048-49F3-8FD4-5120669BCAD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{569234DD-F048-49F3-8FD4-5120669BCAD3}.Release|Any CPU.ActiveCfg = Release|Any CPU

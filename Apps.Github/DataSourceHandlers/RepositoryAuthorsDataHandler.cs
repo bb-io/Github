@@ -3,20 +3,23 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.GitHub.DataSourceHandlers;
 
-public class RepositoryAuthorsDataHandler : GithubInvocable, IAsyncDataSourceItemHandler
+public class RepositoryAuthorsDataHandler(InvocationContext invocationContext)
+    : GithubInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    public RepositoryAuthorsDataHandler(InvocationContext invocationContext) : base(invocationContext){}
-
-    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
+    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(context.SearchString))
         {
-                return new List<DataSourceItem>();
+            return new List<DataSourceItem>();
         }
 
-        var contributors = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.GetAllContributors(long.Parse(context.SearchString)));
+        var contributors = await ExecuteWithErrorHandlingAsync(async () =>
+            await ClientSdk.Repository.GetAllContributors(long.Parse(context.SearchString)));
 
-        return contributors.Where(x => context.SearchString == null || x.Login.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
-                      .Take(30).Select(x => new DataSourceItem(x.Login, $"{x.Login}"));
+        return contributors.Where(x =>
+                context.SearchString == null ||
+                x.Login.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
+            .Select(x => new DataSourceItem(x.Login, $"{x.Login}"));
     }
 }

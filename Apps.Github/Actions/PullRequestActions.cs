@@ -11,16 +11,9 @@ using Octokit;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class PullRequestActions : GithubInvocable
+public class PullRequestActions(InvocationContext invocationContext)
+    : GithubInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-
-    public PullRequestActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
-        : base(invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     [Action("Create pull request", Description = "Create pull request")]
     public async Task<PullRequestDto> CreatePullRequest(
         [ActionParameter] GetRepositoryRequest repositoryRequest,

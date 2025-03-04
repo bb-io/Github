@@ -2,18 +2,11 @@
 
 namespace Apps.Github.Dtos;
 
-public class PullRequestCommitDto
+public class PullRequestCommitDto(PullRequestCommit source)
 {
-    public PullRequestCommitDto(PullRequestCommit source) 
-    {
-        Id = source.Sha;
-        Url = source.Url;
-        AuthorLogin = source.Author.Login;
-    }
+    public string Id { get; set; } = source.Sha;
 
-    public string Id { get; set; }
+    public string Url { get; set; } = source.Url;
 
-    public string Url { get; set; }
-
-    public string AuthorLogin { get; set; }
+    public string AuthorLogin { get; set; } = source.Author.Login;
 }

@@ -2,25 +2,17 @@
 
 namespace Apps.Github.Dtos;
 
-public class PullRequestDto
+public class PullRequestDto(PullRequest source)
 {
-    public PullRequestDto(PullRequest source) {
-        Id = source.Id.ToString();
-        Title = source.Title;
-        Body = source.Body;
-        UserLogin = source.User.Login;
-        Url = source.HtmlUrl;
-        Number = source.Number.ToString();
-    }
-    public string Id { get; set; }
+    public string Id { get; set; } = source.Id.ToString();
 
-    public string Number { get; set; }
+    public string Number { get; set; } = source.Number.ToString();
 
-    public string Title { get; set; }
+    public string Title { get; set; } = source.Title;
 
-    public string Body { get; set; }
+    public string Body { get; set; } = source.Body;
 
-    public string UserLogin { get; set; }
+    public string UserLogin { get; set; } = source.User.Login;
 
-    public string Url { get; set; }
+    public string Url { get; set; } = source.HtmlUrl;
 }

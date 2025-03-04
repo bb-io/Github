@@ -2,32 +2,31 @@
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
-namespace Apps.Github.Connections
+namespace Apps.Github.Connections;
+
+public class ConnectionValidator : IConnectionValidator
 {
-    public class ConnectionValidator : IConnectionValidator
+    public async ValueTask<ConnectionValidationResponse> ValidateConnection(
+        IEnumerable<AuthenticationCredentialsProvider> authProviders, CancellationToken cancellationToken)
     {
-        public async ValueTask<ConnectionValidationResponse> ValidateConnection(
-            IEnumerable<AuthenticationCredentialsProvider> authProviders, CancellationToken cancellationToken)
+        var client = new GithubOctokitClient(authProviders);
+
+        try
         {
-            var client = new GithubOctokitClient(authProviders);
+            await client.Repository.GetAllForCurrent();
 
-            try
+            return new()
             {
-                await client.Repository.GetAllForCurrent();
-
-                return new()
-                {
-                    IsValid = true
-                };
-            }
-            catch (Exception ex)
+                IsValid = true
+            };
+        }
+        catch (Exception ex)
+        {
+            return new()
             {
-                return new()
-                {
-                    IsValid = false,
-                    Message = ex.Message
-                };
-            }
+                IsValid = false,
+                Message = ex.Message
+            };
         }
     }
 }
