@@ -1,5 +1,6 @@
 ﻿using Apps.Github.DataSourceHandlers.EnumHandlers;
 using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Dictionaries;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Octokit;
 
@@ -44,8 +45,7 @@ namespace Apps.Github.Models.Respository.Requests
         [Display("Delete branch on merge")]
         public bool? DeleteBranchOnMerge { get; set; }
 
-        [Display("Visibility")]
-        [DataSource(typeof(RepoVisibilityDataHandler))]
+        [Display("Visibility"), StaticDataSource(typeof(RepoVisibilityDataHandler))]
         public string? Visibility { get; set; }
 
         [Display("Allow rebase merge")]

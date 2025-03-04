@@ -7,12 +7,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Apps.GitHub.Models.Branch.Requests
+namespace Apps.GitHub.Models.Branch.Requests;
+
+public class GetOptionalBranchRequest
 {
-    public class GetOptionalBranchRequest
-    {
-        [Display("Branch name")]
-        [DataSource(typeof(BranchDataHandler))]
-        public string? Name { get; set; }
-    }
+    [Display("Branch name")]
+    [DataSource(typeof(BranchDataHandler))]
+    public string? Name { get; set; }
 }

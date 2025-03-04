@@ -1,53 +1,47 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Apps.GitHub.Api;
+﻿using Apps.GitHub.Api;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Octokit;
 
-namespace Apps.GitHub
+namespace Apps.GitHub;
+
+public class GithubInvocable : BaseInvocable
 {
-    public class GithubInvocable : BaseInvocable
-    {
-        protected IEnumerable<AuthenticationCredentialsProvider> Creds =>
+    protected IEnumerable<AuthenticationCredentialsProvider> Creds =>
         InvocationContext.AuthenticationCredentialsProviders;
 
-        protected GithubOctokitClient ClientSdk { get; }
-        protected GithubRestClient ClientRest { get; }
+    protected GithubOctokitClient ClientSdk { get; }
+    protected GithubRestClient ClientRest { get; }
 
-        public GithubInvocable(InvocationContext invocationContext) : base(invocationContext)
+    public GithubInvocable(InvocationContext invocationContext) : base(invocationContext)
+    {
+        ClientSdk = new(Creds);
+        ClientRest = new(Creds);
+    }
+
+    protected async Task ExecuteWithErrorHandlingAsync(Func<Task> action)
+    {
+        try
         {
-            ClientSdk = new(Creds);
-            ClientRest = new(Creds);
+            await action();
         }
-
-        protected async Task ExecuteWithErrorHandlingAsync(Func<Task> action)
+        catch (ApiException ex)
         {
-            try
-            {
-                await action();
-            }
-            catch (ApiException ex)
-            {
-                throw new PluginApplicationException(ex.Message);
-            }
+            throw new PluginApplicationException(ex.Message);
         }
+    }
 
-        protected async Task<T> ExecuteWithErrorHandlingAsync<T>(Func<Task<T>> action)
+    protected async Task<T> ExecuteWithErrorHandlingAsync<T>(Func<Task<T>> action)
+    {
+        try
         {
-            try
-            {
-                return await action();
-            }
-            catch (ApiException ex)
-            {
-                throw new PluginApplicationException(ex.Message);
-            }
+            return await action();
+        }
+        catch (ApiException ex)
+        {
+            throw new PluginApplicationException(ex.Message);
         }
     }
 }

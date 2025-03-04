@@ -12,16 +12,8 @@ using Octokit;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class BranchActions : GithubInvocable
+public class BranchActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-
-    public BranchActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
-        : base(invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     [Action("Branch exists", Description = "Branch exists in specified repository")]
     public async Task<bool> BranchExists(
         [ActionParameter] GetRepositoryRequest repositoryRequest,

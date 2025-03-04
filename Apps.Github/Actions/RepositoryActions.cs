@@ -10,16 +10,8 @@ using Apps.GitHub;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class RepositoryActions : GithubInvocable
+public class RepositoryActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
-    private readonly IFileManagementClient _fileManagementClient;
-
-    public RepositoryActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
-        : base(invocationContext)
-    {
-        _fileManagementClient = fileManagementClient;
-    }
-
     [Action("Get repository issues", Description = "Get opened issues against repository")]
     public async Task<GetIssuesResponse> GetIssuesInRepository([ActionParameter] RepositoryRequest input)
     {

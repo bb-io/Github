@@ -4,32 +4,32 @@ using RestSharp;
 
 namespace Apps.Github.Webhooks.Bridge;
 
-public class BridgeService
+public class BridgeService(string bridgeServiceUrl)
 {
-    private string BridgeServiceUrl { get; set; }
-    public BridgeService(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, string bridgeServiceUrl) 
-    {
-        BridgeServiceUrl = bridgeServiceUrl;
-    }
-    public void Subscribe(string _event, string repositoryId, string url)
+    private string BridgeServiceUrl { get; set; } = bridgeServiceUrl;
+
+    public void Subscribe(string @event, string repositoryId, string url)
     {
         var client = new RestClient(BridgeServiceUrl);
-        var request = new RestRequest($"/{repositoryId}/{_event}", Method.Post);
+        var request = new RestRequest($"/{repositoryId}/{@event}", Method.Post);
         request.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
         request.AddBody(url);
         client.Execute(request);
     }
 
-    public void Unsubscribe(string _event, string repositoryId, string url)
+    public void Unsubscribe(string @event, string repositoryId, string url)
     {
         var client = new RestClient(BridgeServiceUrl);
-        var requestGet = new RestRequest($"/{repositoryId}/{_event}", Method.Get);
+        var requestGet = new RestRequest($"/{repositoryId}/{@event}", Method.Get);
         requestGet.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
         var webhooks = client.Get<List<BridgeGetResponse>>(requestGet);
-        var webhook = webhooks.FirstOrDefault(w => w.Value == url);
+        if (webhooks != null)
+        {
+            var webhook = webhooks.FirstOrDefault(w => w.Value == url);
 
-        var requestDelete = new RestRequest($"/{repositoryId}/{_event}/{webhook.Id}", Method.Delete);
-        requestDelete.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
-        client.Delete(requestDelete);
+            var requestDelete = new RestRequest($"/{repositoryId}/{@event}/{webhook.Id}", Method.Delete);
+            requestDelete.AddHeader("Blackbird-Token", ApplicationConstants.BlackbirdToken);
+            client.Delete(requestDelete);
+        }
     }
 }

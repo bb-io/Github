@@ -2,19 +2,13 @@
 
 namespace Apps.Github.Dtos;
 
-public class IssueDto
+public class IssueDto(Issue source)
 {
-    public IssueDto(Issue source) {
-        Title = source.Title;
-        Body = source.Body;
-        UserLogin = source.User.Login;
-        Url = source.HtmlUrl;
-    }
-    public string Title { get; set; }
+    public string Title { get; set; } = source.Title;
 
-    public string Body { get; set; }
+    public string Body { get; set; } = source.Body;
 
-    public string UserLogin { get; set; }
+    public string UserLogin { get; set; } = source.User.Login;
 
-    public string Url { get; set; }
+    public string Url { get; set; } = source.HtmlUrl;
 }

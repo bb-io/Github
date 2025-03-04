@@ -10,12 +10,8 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 namespace Apps.Github.Actions;
 
 [ActionList]
-public class UserActions : GithubInvocable
+public class UserActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
-    public UserActions(InvocationContext invocationContext) : base(invocationContext)
-    {
-    }
-
     [Action("Get user by username", Description = "Get information about specific user")]
     public async Task<UserDataResponse> GetUserData([ActionParameter] UserDataRequest input)
     {

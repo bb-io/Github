@@ -4,9 +4,10 @@ using Blackbird.Applications.Sdk.Common.Webhooks;
 
 namespace Apps.Github.Webhooks.Handlers;
 
-public class PushActionHandler : BaseWebhookHandler
+public class PushActionHandler(
+    InvocationContext invocationContext,
+    [WebhookParameter(true)] WebhookRepositoryInput input)
+    : BaseWebhookHandler(invocationContext, input, SubscriptionEvent)
 {
     const string SubscriptionEvent = "push";
-
-    public PushActionHandler(InvocationContext invocationContext, [WebhookParameter(true)] WebhookRepositoryInput input) : base(invocationContext, input, SubscriptionEvent) { }
 }
