@@ -8,7 +8,7 @@ namespace Apps.Github.DataSourceHandlers;
 public class RepositoryDataHandler(InvocationContext invocationContext)
     : GithubInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    async Task<IEnumerable<DataSourceItem>> IAsyncDataSourceItemHandler.GetDataAsync(DataSourceContext context,
+    public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context,
         CancellationToken cancellationToken)
     {
         var content = await ExecuteWithErrorHandlingAsync(async () =>
