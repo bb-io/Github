@@ -10,12 +10,12 @@ namespace Apps.GitHub.Models.Workflow
         [Display("Workflow")]
         [JsonProperty("workflow")]
         [DataSource(typeof(WorkflowDataHandler))]
-        public string Workflow { get; set; } = default!;
+        public string Workflow { get; set; }
 
         [Display("Ref", Description = " The reference can be a branch or tag name")]
         [DataSource(typeof(BranchDataHandler))]
         [JsonProperty("ref")]
-        public string Ref { get; set; } = "main";
+        public string Ref { get; set; }
 
         [Display("Inputs (JSON)")]
         [JsonProperty("inputs")]
