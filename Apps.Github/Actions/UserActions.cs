@@ -9,7 +9,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.Github.Actions;
 
-[ActionList]
+[ActionList("Users")]
 public class UserActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
     [Action("Get user by username", Description = "Get information about specific user")]

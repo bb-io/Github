@@ -11,7 +11,7 @@ using Octokit;
 
 namespace Apps.Github.Actions;
 
-[ActionList]
+[ActionList("Branches")]
 public class BranchActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
     [Action("Branch exists", Description = "Branch exists in specified repository")]

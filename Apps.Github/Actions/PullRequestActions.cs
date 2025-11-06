@@ -10,7 +10,7 @@ using Octokit;
 
 namespace Apps.Github.Actions;
 
-[ActionList]
+[ActionList("Pull requests")]
 public class PullRequestActions(InvocationContext invocationContext)
     : GithubInvocable(invocationContext)
 {

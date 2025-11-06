@@ -9,7 +9,7 @@ using Apps.GitHub;
 
 namespace Apps.Github.Actions;
 
-[ActionList]
+[ActionList("Repositories")]
 public class RepositoryActions(InvocationContext invocationContext) : GithubInvocable(invocationContext)
 {
     [Action("Get repository issues", Description = "Get opened issues against repository")]
