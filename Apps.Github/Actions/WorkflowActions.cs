@@ -4,13 +4,7 @@ using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Newtonsoft.Json;
 using Octokit;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Apps.GitHub.Actions
 {
@@ -24,22 +18,25 @@ namespace Apps.GitHub.Actions
         {
             var repo = await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
 
-            Dictionary<string, object>? inputsDict = null;
+            IDictionary<string, object>? inputsDict = null;
             if (!string.IsNullOrWhiteSpace(input.InputsJson))
             {
                 try
                 {
-                    inputsDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(input.InputsJson!);
-                    if (inputsDict == null)
-                        throw new PluginMisconfigurationException("“Inputs (JSON)” must be a JSON object.");
+                    var obj = Newtonsoft.Json.Linq.JObject.Parse(input.InputsJson);
+                    if (obj.Properties().Any())
+                        inputsDict = obj.ToObject<Dictionary<string, object>>();
                 }
-                catch (JsonException ex)
+                catch (Newtonsoft.Json.JsonException ex)
                 {
                     throw new PluginMisconfigurationException($"Invalid JSON in “Inputs (JSON)”: {ex.Message}");
                 }
             }
 
             var dispatch = new CreateWorkflowDispatch(input.Ref);
+            if (inputsDict != null)
+                dispatch.Inputs = inputsDict;
+
             await ExecuteWithErrorHandlingAsync(async () => await ClientSdk.Actions.Workflows.CreateDispatch(repo.Owner.Login, repo.Name, input.Workflow, dispatch));
 
             return new WorkflowDispatchResponseDto
