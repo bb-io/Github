@@ -19,7 +19,7 @@ using Blackbird.Applications.Sdk.Common.Exceptions;
 
 namespace Apps.GitHub.Actions;
 
-[ActionList]
+[ActionList("Files")]
 public class FileActions(InvocationContext invocationContext, IFileManagementClient fileManagementClient)
     : GithubInvocable(invocationContext)
 {
