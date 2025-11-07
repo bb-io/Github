@@ -27,7 +27,7 @@ public class GithubInvocable : BaseInvocable
         {
             await action();
         }
-        catch (ApiException ex)
+        catch (Exception ex)
         {
             throw new PluginApplicationException(ex.Message);
         }
@@ -39,7 +39,7 @@ public class GithubInvocable : BaseInvocable
         {
             return await action();
         }
-        catch (ApiException ex)
+        catch (Exception ex)
         {
             throw new PluginApplicationException(ex.Message);
         }
