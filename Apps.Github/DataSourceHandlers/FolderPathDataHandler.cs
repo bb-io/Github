@@ -64,25 +64,33 @@ public class FolderPathDataHandler(
             throw new PluginMisconfigurationException("Please specify the repository ID first");
 
         var repoId = long.Parse(repositoryRequest.RepositoryId);
+        var branch = branchRequest?.Name;
 
-        var currentPath = context.FolderId;
+        var rawPath = context.FolderId;
         string pathForApi = "";
 
-        if (!string.IsNullOrEmpty(currentPath))
+        if (!string.IsNullOrEmpty(rawPath))
         {
-            currentPath = currentPath.Replace("\\", "/").TrimEnd('/');
-
-            if (Path.HasExtension(currentPath))
-                pathForApi = Path.GetDirectoryName(currentPath)?.Replace("\\", "/") ?? "";
+            rawPath = rawPath.Replace("\\", "/").TrimEnd('/');
+            if (Path.HasExtension(rawPath))
+                pathForApi = Path.GetDirectoryName(rawPath)?.Replace("\\", "/") ?? "";
             else
-                pathForApi = currentPath;
+                pathForApi = rawPath;
         }
 
         var contents = await ExecuteWithErrorHandlingAsync(async () =>
-            string.IsNullOrEmpty(pathForApi)
+        {
+            if (!string.IsNullOrEmpty(branch))
+            {
+                return string.IsNullOrEmpty(pathForApi)
+                    ? await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, branch)
+                    : await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, pathForApi, branch);
+            }
+
+            return string.IsNullOrEmpty(pathForApi)
                 ? await ClientSdk.Repository.Content.GetAllContents(repoId)
-                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi)
-        );
+                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi);
+        });
 
         var items = contents.Select(x =>
         {
@@ -102,8 +110,8 @@ public class FolderPathDataHandler(
                 };
         });
 
-        return items.Cast<FileDataItem>()
-            .OrderByDescending(i => i is Folder)
+        return items
+            .OrderBy(i => i is File)
             .ThenBy(i => i.DisplayName);
     }
 }

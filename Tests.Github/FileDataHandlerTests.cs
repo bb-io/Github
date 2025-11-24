@@ -13,10 +13,10 @@ public class FileDataHandlerTests : TestBase
     public async Task GetFolderContentAsync_ReturnsFolderContent()
     {
         // Arrange
-        var repoRequest = new GetRepositoryRequest { RepositoryId = "1027644029" };
-        var branchRequest = new GetOptionalBranchRequest { };
+        var repoRequest = new GetRepositoryRequest { RepositoryId = "1101419096" };
+        var branchRequest = new GetOptionalBranchRequest { Name = "develop" };
         var handler = new FilePathDataHandler(InvocationContext, repoRequest, branchRequest);
-        var folderContext = new FolderContentDataSourceContext { FolderId = "Shared/Filters/DogFilter.cs" };
+        var folderContext = new FolderContentDataSourceContext { FolderId = "" };
 
         // Act
         var result = await handler.GetFolderContentAsync(folderContext, CancellationToken.None);

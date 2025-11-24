@@ -64,6 +64,7 @@ public class FilePathDataHandler(
             throw new PluginMisconfigurationException("Please specify the repository ID first");
 
         var repoId = long.Parse(repositoryRequest.RepositoryId);
+        var branch = branchRequest?.Name;
 
         var rawPath = context.FolderId;
         string pathForApi = "";
@@ -78,11 +79,18 @@ public class FilePathDataHandler(
         }
 
         var contents = await ExecuteWithErrorHandlingAsync(async () =>
-            string.IsNullOrEmpty(pathForApi)
-                ? await ClientSdk.Repository.Content.GetAllContents(repoId)
-                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi)
-        );
+        {
+            if (!string.IsNullOrEmpty(branch))
+            {
+                return string.IsNullOrEmpty(pathForApi)
+                    ? await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, branch)
+                    : await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, pathForApi, branch);
+            }
 
+            return string.IsNullOrEmpty(pathForApi)
+                ? await ClientSdk.Repository.Content.GetAllContents(repoId)
+                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi);
+        });
 
         var items = contents.Select(x =>
         {
