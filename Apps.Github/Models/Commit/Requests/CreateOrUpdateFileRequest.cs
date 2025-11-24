@@ -1,14 +1,14 @@
 ﻿using Apps.GitHub.DataSourceHandlers;
 using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Files;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
 namespace Apps.Github.Models.Commit.Requests;
 
 public class CreateOrUpdateFileRequest
 {
     [Display("File path")]
-    [DataSource(typeof(FolderPathDataHandler))]
+    [FileDataSource(typeof(FolderPathDataHandler))]
     public string? FilePath { get; set; }
 
     [Display("File")]
