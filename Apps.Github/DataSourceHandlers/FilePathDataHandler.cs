@@ -116,7 +116,7 @@ public class FilePathDataHandler(
             filtered = allItems.Where(i =>
             {
                 var parent = Path.GetDirectoryName(i.Id)?.Replace("\\", "/") ?? "";
-                var normalizedCurrent = currentFolder?.TrimEnd('/') ?? "";
+                var normalizedCurrent = currentFolder ?? "";
 
                 if (!string.IsNullOrEmpty(normalizedCurrent) && i.Id.StartsWith(normalizedCurrent + "/"))
                     i.DisplayName = i.Id.Substring(normalizedCurrent.Length + 1);
