@@ -8,7 +8,7 @@ namespace Apps.Github.Models.Commit.Requests;
 public class CreateOrUpdateFileRequest
 {
     [Display("File path")]
-    //[DataSource(typeof(FolderPathDataHandler))]
+    [DataSource(typeof(FolderPathDataHandler))]
     public string? FilePath { get; set; }
 
     [Display("File")]
