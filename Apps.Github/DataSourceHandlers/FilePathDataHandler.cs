@@ -63,77 +63,47 @@ public class FilePathDataHandler(
         if (string.IsNullOrEmpty(repositoryRequest.RepositoryId))
             throw new PluginMisconfigurationException("Please specify the repository ID first");
 
-        var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () =>
-            await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId))
-        );
+        var repoId = long.Parse(repositoryRequest.RepositoryId);
 
-        var tree = await ExecuteWithErrorHandlingAsync(async () =>
-            await ClientSdk.Git.Tree.GetRecursive(
-                long.Parse(repositoryRequest.RepositoryId),
-                branchRequest?.Name ?? repositoryInfo.DefaultBranch
-            )
-        );
+        var rawPath = context.FolderId;
+        string pathForApi = "";
 
-        var blobs = tree.Tree.Where(x => x.Type.Value == TreeType.Blob);
-
-        var files = blobs
-            .Select(x => new File
-            {
-                Id = x.Path,
-                DisplayName = Path.GetFileName(x.Path),
-                IsSelectable = true,
-            })
-            .ToList();
-
-        var folderPaths = blobs
-            .SelectMany(x =>
-            {
-                var parts = x.Path.Split('/');
-                return Enumerable.Range(1, parts.Length - 1).Select(i => string.Join('/', parts.Take(i)));
-            })
-            .Distinct();
-
-        var folders = folderPaths
-            .Select(path => new Folder
-            {
-                Id = path,
-                DisplayName = path.Split('/').Last(),
-                IsSelectable = false,
-            })
-            .ToList();
-
-        var allItems = files.Cast<FileDataItem>()
-                            .Concat(folders)
-                            .ToList();
-
-        string? folderToDisplay;
-        var folderId = context.FolderId;
-
-        if (!string.IsNullOrEmpty(folderId))
+        if (!string.IsNullOrEmpty(rawPath))
         {
-            folderId = folderId.TrimEnd('/');
-
-            folderToDisplay = Path.HasExtension(folderId)
-                ? Path.GetDirectoryName(folderId)?.Replace("\\", "/") ?? ""
-                : folderId;
-        }
-        else
-            folderToDisplay = "";
-
-        var filtered = allItems.Where(i =>
-        {
-            var parent = Path.GetDirectoryName(i.Id)?.Replace("\\", "/") ?? "";
-
-            if (!string.IsNullOrEmpty(folderToDisplay) && i.Id.StartsWith(folderToDisplay + "/"))
-                i.DisplayName = i.Id.Substring(folderToDisplay.Length + 1);
+            rawPath = rawPath.Replace("\\", "/").TrimEnd('/');
+            if (Path.HasExtension(rawPath))
+                pathForApi = Path.GetDirectoryName(rawPath)?.Replace("\\", "/") ?? "";
             else
-                i.DisplayName = i.Id;
+                pathForApi = rawPath;
+        }
 
-            return parent == folderToDisplay;
+        var contents = await ExecuteWithErrorHandlingAsync(async () =>
+            string.IsNullOrEmpty(pathForApi)
+                ? await ClientSdk.Repository.Content.GetAllContents(repoId)
+                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi)
+        );
+
+
+        var items = contents.Select(x =>
+        {
+            var isFolder = x.Type == ContentType.Dir;
+            return isFolder
+                ? (FileDataItem)new Folder
+                {
+                    Id = x.Path,
+                    DisplayName = x.Name,
+                    IsSelectable = false
+                }
+                : new File
+                {
+                    Id = x.Path,
+                    DisplayName = x.Name,
+                    IsSelectable = true,
+                };
         });
 
-        return filtered
+        return items
             .OrderBy(i => i is File)
-            .ThenBy(i => i.Id);
+            .ThenBy(i => i.DisplayName);
     }
 }
