@@ -20,7 +20,13 @@ public class FilePathDataHandler(
     {
         var itemId = context.FileDataItemId;
 
-        var breadcrumb = new List<FolderPathItem>();
+        var breadcrumb = new List<FolderPathItem>
+        {
+            new() {
+                Id = "",
+                DisplayName = "Root"
+            }
+        };
 
         if (!string.IsNullOrEmpty(itemId))
         {
