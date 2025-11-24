@@ -21,12 +21,12 @@ public class FilePathDataHandler(
         var itemId = context.FileDataItemId;
 
         var breadcrumb = new List<FolderPathItem>
-        {
-            new() {
-                Id = "",
-                DisplayName = "Root"
-            }
-        };
+    {
+        new() {
+            Id = "",
+            DisplayName = "Root"
+        }
+    };
 
         if (!string.IsNullOrEmpty(itemId))
         {
@@ -37,11 +37,18 @@ public class FilePathDataHandler(
             if (!string.IsNullOrEmpty(folderPath))
             {
                 var parts = folderPath.Split('/');
+                var currentPathAccumulator = "";
+
                 foreach (var part in parts)
                 {
+                    if (string.IsNullOrEmpty(currentPathAccumulator))
+                        currentPathAccumulator = part;
+                    else
+                        currentPathAccumulator += $"/{part}";
+
                     breadcrumb.Add(new FolderPathItem
                     {
-                        Id = part,
+                        Id = currentPathAccumulator,
                         DisplayName = part
                     });
                 }
