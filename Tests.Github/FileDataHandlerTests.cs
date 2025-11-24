@@ -16,7 +16,7 @@ public class FileDataHandlerTests : TestBase
         var repoRequest = new GetRepositoryRequest { RepositoryId = "1027644029" };
         var branchRequest = new GetOptionalBranchRequest { };
         var handler = new FilePathDataHandler(InvocationContext, repoRequest, branchRequest);
-        var folderContext = new FolderContentDataSourceContext { FolderId = "Shared" };
+        var folderContext = new FolderContentDataSourceContext { FolderId = "Shared/Filters" };
 
         // Act
         var result = await handler.GetFolderContentAsync(folderContext, CancellationToken.None);
