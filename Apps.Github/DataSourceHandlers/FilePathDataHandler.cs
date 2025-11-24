@@ -99,33 +99,31 @@ public class FilePathDataHandler(
                             .Concat(folders)
                             .ToList();
 
-        string? currentFolder = context.FolderId;
+        string? folderToDisplay;
+        var folderId = context.FolderId;
 
-        IEnumerable<FileDataItem> filtered;
-
-        if (string.IsNullOrEmpty(currentFolder))
+        if (!string.IsNullOrEmpty(folderId))
         {
-            filtered = allItems.Where(i =>
-            {
-                var parent = Path.GetDirectoryName(i.Id);
-                return string.IsNullOrEmpty(parent);
-            });
+            folderId = folderId.TrimEnd('/');
+
+            folderToDisplay = Path.HasExtension(folderId)
+                ? Path.GetDirectoryName(folderId)?.Replace("\\", "/") ?? ""
+                : folderId;
         }
         else
+            folderToDisplay = "";
+
+        var filtered = allItems.Where(i =>
         {
-            filtered = allItems.Where(i =>
-            {
-                var parent = Path.GetDirectoryName(i.Id)?.Replace("\\", "/") ?? "";
-                var normalizedCurrent = currentFolder ?? "";
+            var parent = Path.GetDirectoryName(i.Id)?.Replace("\\", "/") ?? "";
 
-                if (!string.IsNullOrEmpty(normalizedCurrent) && i.Id.StartsWith(normalizedCurrent + "/"))
-                    i.DisplayName = i.Id.Substring(normalizedCurrent.Length + 1);
-                else
-                    i.DisplayName = i.Id;
+            if (!string.IsNullOrEmpty(folderToDisplay) && i.Id.StartsWith(folderToDisplay + "/"))
+                i.DisplayName = i.Id.Substring(folderToDisplay.Length + 1);
+            else
+                i.DisplayName = i.Id;
 
-                return parent == currentFolder;
-            });
-        }
+            return parent == folderToDisplay;
+        });
 
         return filtered
             .OrderBy(i => i is File)
