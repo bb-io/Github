@@ -24,11 +24,13 @@ public class FilePathDataHandler(
 
         if (!string.IsNullOrEmpty(itemId))
         {
-            var directory = Path.GetDirectoryName(itemId);
+            var folderPath = itemId;
+            if (!itemId.EndsWith('/') && Path.HasExtension(itemId))
+                folderPath = Path.GetDirectoryName(itemId)?.Replace("\\", "/");
 
-            if (!string.IsNullOrEmpty(directory))
+            if (!string.IsNullOrEmpty(folderPath))
             {
-                var parts = directory.Split('/');
+                var parts = folderPath.Split('/');
                 foreach (var part in parts)
                 {
                     breadcrumb.Add(new FolderPathItem
