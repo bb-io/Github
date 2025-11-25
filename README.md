@@ -114,9 +114,9 @@ In order to respond to events happening in Github, you need to also install our 
 - **On files added or modified** is triggered when new commits add new files or modify files. It returns paths to all these files.
 - **On files removed** is triggered when new commits remove files. It returns paths to all deleted files.
 
-For the file specific events, a path parameter can be specified in order to narrow down the event to only files in specific folders or files that have certain extensions. Use the forward slash '/' to represent directory separator. Use '\*' to represent wildcards in file and directory names. Use '\*\*' to represent arbitrary directory depth.
+For the file specific events, a 'Folder pattern' parameter can be specified in order to narrow down the event to only files in specific folders or files that have certain extensions. Use the forward slash '/' to represent directory separator. Use '\*' to represent wildcards in file and directory names. Use '\*\*' to represent arbitrary directory depth.
 
-For example: when you want to create an event that triggers only when .html files are modified in a folder called _locales_. Then the path of the **On files added or modified** event should be: _/locales/\*.html_
+For example: when you want to create an event that triggers only when .html files are modified in a folder called _locales_. Then the folder pattern of the **On files added or modified** event should be: _/locales/\*.html_
 
 ![1705407685118](image/README/1705407685118.png)
 
