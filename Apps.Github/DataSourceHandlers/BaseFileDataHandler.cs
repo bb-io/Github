@@ -81,6 +81,7 @@ public class BaseFileDataHandler(InvocationContext context) : GithubInvocable(co
                     Id = x.Path,
                     DisplayName = x.Name,
                     IsSelectable = filesAreSelectable,
+                    Size = x.Size,
                 };
         });
 
