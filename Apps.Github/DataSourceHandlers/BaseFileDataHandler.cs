@@ -1,0 +1,92 @@
+﻿using Octokit;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
+using File = Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems.File;
+
+namespace Apps.GitHub.DataSourceHandlers;
+
+public class BaseFileDataHandler(InvocationContext context) : GithubInvocable(context)
+{
+    public static IEnumerable<FolderPathItem> GetFolderPath(string? itemId)
+    {
+        var breadcrumb = new List<FolderPathItem>
+        {
+            new() {
+                Id = "",
+                DisplayName = "Root"
+            }
+        };
+
+        if (!string.IsNullOrEmpty(itemId))
+        {
+            var folderPath = itemId;
+            if (!itemId.EndsWith('/') && Path.HasExtension(itemId))
+                folderPath = Path.GetDirectoryName(itemId)?.Replace("\\", "/");
+
+            if (!string.IsNullOrEmpty(folderPath))
+            {
+                var parts = folderPath.Split('/');
+                var currentPathAccumulator = "";
+
+                foreach (var part in parts)
+                {
+                    if (string.IsNullOrEmpty(currentPathAccumulator))
+                        currentPathAccumulator = part;
+                    else
+                        currentPathAccumulator += $"/{part}";
+
+                    breadcrumb.Add(new FolderPathItem
+                    {
+                        Id = currentPathAccumulator,
+                        DisplayName = part
+                    });
+                }
+            }
+        }
+
+        return breadcrumb;
+    }
+
+    public async Task<IEnumerable<FileDataItem>> GetFolderContentAsync(
+        long repoId, 
+        string? branch, 
+        string? pathForApi, 
+        bool filesAreSelectable, 
+        bool foldersAreSelectable)
+    {
+        var contents = await ExecuteWithErrorHandlingAsync(async () =>
+        {
+            if (!string.IsNullOrEmpty(branch))
+                return string.IsNullOrEmpty(pathForApi)
+                    ? await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, branch)
+                    : await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, pathForApi, branch);
+
+            return string.IsNullOrEmpty(pathForApi)
+                ? await ClientSdk.Repository.Content.GetAllContents(repoId)
+                : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi);
+        });
+
+        var items = contents.Select(x =>
+        {
+            var isFolder = x.Type == ContentType.Dir;
+            return isFolder
+                ? (FileDataItem)new Folder
+                {
+                    Id = x.Path,
+                    DisplayName = x.Name,
+                    IsSelectable = foldersAreSelectable
+                }
+                : new File
+                {
+                    Id = x.Path,
+                    DisplayName = x.Name,
+                    IsSelectable = filesAreSelectable,
+                    Size = x.Size,
+                };
+        });
+
+        return items
+            .OrderBy(i => i is File)
+            .ThenBy(i => i.DisplayName);
+    }
+}

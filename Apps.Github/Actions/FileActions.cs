@@ -165,7 +165,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
     public async Task DeleteFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
-        [ActionParameter] Models.File.Requests.DeleteFileRequest deleteFileRequest)
+        [ActionParameter] DeleteFileRequest deleteFileRequest)
     {
         var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () =>
             await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));

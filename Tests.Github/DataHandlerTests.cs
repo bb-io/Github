@@ -1,39 +1,59 @@
-﻿using Apps.Github.DataSourceHandlers;
+﻿using Tests.Github.Base;
+using Apps.Github.DataSourceHandlers;
 using Apps.GitHub.DataSourceHandlers;
+using Apps.GitHub.Models.Branch.Requests;
+using Apps.Github.Models.Respository.Requests;
 using Blackbird.Applications.Sdk.Common.Dynamic;
-using Tests.Github.Base;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
-namespace Tests.Github
+namespace Tests.Github;
+
+[TestClass]
+public class DataHandlerTests : TestBase
 {
-    [TestClass]
-    public class DataHandlerTests : TestBase
+    [TestMethod]
+    public async Task RepositoryDataHandler_IsSuccess()
     {
-        [TestMethod]
-        public async Task RepositoryDataHandler_IsSuccess()
-        {
-            var handler = new RepositoryDataHandler(InvocationContext);
+        var handler = new RepositoryDataHandler(InvocationContext);
 
-            var repositories = await handler.GetDataAsync(new DataSourceContext { SearchString=""}, CancellationToken.None);
+        var repositories = await handler.GetDataAsync(new DataSourceContext { SearchString=""}, CancellationToken.None);
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(repositories);
+        PrintResult(repositories);
+        Assert.IsNotNull(repositories);
+    }
 
-            Console.WriteLine(json);
+    [TestMethod]
+    public async Task WorkflowDataHandler_IsSuccess()
+    {
+        var handler = new WorkflowDataHandler(InvocationContext, new GetRepositoryRequest { RepositoryId= "1077915437" });
 
-            Assert.IsNotNull(repositories);
-        }
+        var repositories = await handler.GetDataAsync(new DataSourceContext { SearchString = "" }, CancellationToken.None);
 
-        [TestMethod]
-        public async Task WorkflowDataHandler_IsSuccess()
-        {
-            var handler = new WorkflowDataHandler(InvocationContext, new Apps.Github.Models.Respository.Requests.GetRepositoryRequest { RepositoryId= "1077915437" });
+        PrintResult(repositories);
+        Assert.IsNotNull(repositories);
+    }
 
-            var repositories = await handler.GetDataAsync(new DataSourceContext { SearchString = "" }, CancellationToken.None);
+    [TestMethod]
+    public async Task FilePathDataHandler_ReturnsFolderContent()
+    {
+        // Arrange
+        var repoRequest = new GetRepositoryRequest { RepositoryId = "1101419096" };
+        var branchRequest = new GetOptionalBranchRequest { Name = "develop" };
+        var handler = new FilePathDataHandler(InvocationContext, repoRequest, branchRequest);
+        var folderContext = new FolderContentDataSourceContext { FolderId = "Apps.PropioOne" };
 
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(repositories);
+        // Act
+        var result = await handler.GetFolderContentAsync(folderContext, CancellationToken.None);
 
-            Console.WriteLine(json);
+        // Assert
+        foreach (var item in result)
+            Console.WriteLine($"{item.Id} - {(item.Type == 0 ? "Folder" : "File")} - {item.DisplayName}");
+        Assert.IsNotNull(result);
+    }
 
-            Assert.IsNotNull(repositories);
-        }
+    private static void PrintResult(IEnumerable<DataSourceItem> items)
+    {
+        foreach (var item in items)
+            Console.WriteLine($"{item.Value} - {item.DisplayName}");
     }
 }
