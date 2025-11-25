@@ -64,28 +64,16 @@ public class FolderPathDataHandler(
             throw new PluginMisconfigurationException("Please specify the repository ID first");
 
         var repoId = long.Parse(repositoryRequest.RepositoryId);
-        var branch = branchRequest?.Name;
+        string? branch = branchRequest?.Name;
 
-        var rawPath = context.FolderId;
-        string pathForApi = "";
-
-        if (!string.IsNullOrEmpty(rawPath))
-        {
-            rawPath = rawPath.Replace("\\", "/").TrimEnd('/');
-            if (Path.HasExtension(rawPath))
-                pathForApi = Path.GetDirectoryName(rawPath)?.Replace("\\", "/") ?? "";
-            else
-                pathForApi = rawPath;
-        }
+        string? pathForApi = context.FolderId;
 
         var contents = await ExecuteWithErrorHandlingAsync(async () =>
         {
             if (!string.IsNullOrEmpty(branch))
-            {
                 return string.IsNullOrEmpty(pathForApi)
                     ? await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, branch)
                     : await ClientSdk.Repository.Content.GetAllContentsByRef(repoId, pathForApi, branch);
-            }
 
             return string.IsNullOrEmpty(pathForApi)
                 ? await ClientSdk.Repository.Content.GetAllContents(repoId)
