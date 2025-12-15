@@ -6,7 +6,6 @@ using Apps.GitHub.Models.Branch.Requests;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Octokit;
 
 namespace Apps.Github.Actions;

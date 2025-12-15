@@ -1,5 +1,7 @@
 ﻿using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using System.IO;
+using System.Text;
 
 namespace Tests.Github.Base
 {
@@ -31,6 +33,25 @@ namespace Tests.Github.Base
 
             var stream = new MemoryStream(bytes);
             return Task.FromResult((Stream)stream);
+        }
+
+        public string ReadOutputAsString(FileReference reference)
+        {
+            var path = Path.Combine(outputFolder, reference.Name);
+            Assert.IsTrue(File.Exists(path), $"File not found at: {path}");
+            return File.ReadAllText(path, Encoding.UTF8)!;
+        }
+
+        public FileReference CreateFileReferenceFromString(string content, string contentType, string fileName)
+        {
+            var path = Path.Combine(inputFolder, fileName);
+            new FileInfo(path).Directory.Create();
+            using (var fileStream = File.Create(path))
+            {
+                (new MemoryStream(Encoding.UTF8.GetBytes(content))).CopyTo(fileStream);
+            }
+
+            return new FileReference() { Name = fileName, ContentType = contentType };
         }
 
         public Task<FileReference> UploadAsync(Stream stream, string contentType, string fileName)
