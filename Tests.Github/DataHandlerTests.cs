@@ -51,6 +51,25 @@ public class DataHandlerTests : TestBase
         Assert.IsNotNull(result);
     }
 
+    [TestMethod]
+    public async Task FolderPathDataHandler_ReturnsFolderContent()
+    {
+        // Arrange
+        var repoRequest = new GetRepositoryRequest { RepositoryId = "1116720412" };
+        var branchRequest = new GetOptionalBranchRequest { Name = "main" };
+        var handler = new FolderPathDataHandler(InvocationContext, repoRequest, branchRequest);
+        var folderContext = new FolderContentDataSourceContext { };
+
+        // Act
+        var result = await handler.GetFolderContentAsync(folderContext, CancellationToken.None);
+
+        // Assert
+        foreach (var item in result)
+            Console.WriteLine($"{item.Id} - {(item.Type == 0 ? "Folder" : "File")} - {item.DisplayName}");
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.All(x => x is Folder));
+    }
+
     private static void PrintResult(IEnumerable<DataSourceItem> items)
     {
         foreach (var item in items)

@@ -155,7 +155,7 @@ public class PushWebhooks
         };
     }
 
-    private string GetFolderPath(FolderInput input)
+    private string? GetFolderPath(FolderInput input)
     {
         if (string.IsNullOrEmpty(input.FolderPath))
         {
@@ -166,6 +166,12 @@ public class PushWebhooks
             }
             return null;
         }
+
+        if (!string.IsNullOrEmpty(input.Folder))
+        {
+            return input.Folder.TrimEnd('/') + input.FolderPath;
+        }
+
         return input.FolderPath;
     }
 }

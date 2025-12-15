@@ -1,0 +1,24 @@
+{
+  "app.cta": "Click on the Blackbird and React logos to learn more",
+  "app.greeting": "Blackbird Intl Example",
+  "app.headline": "Control this repo with a Bird and see the magic happen",
+  "app.locale": "Locale",
+  "languages.english": "English",
+  "languages.french": "French",
+  "languages.japanese": "Japanese",
+  "languages.ukrainian": "Ukrainian",
+  "__blackbird_meta": {
+    "variant": "en",
+    "system": {
+      "ucid": "/bb-io/intl-example/blob/main/lang/en.json",
+      "content-name": "en.json",
+      "admin-url": "https://github.com/bb-io/intl-example/blob/main/lang/en.json",
+      "system-name": "Github",
+      "system-ref": "https://github.com/"
+    },
+    "provenance": {
+      "translation": {},
+      "revision": {}
+    }
+  }
+}

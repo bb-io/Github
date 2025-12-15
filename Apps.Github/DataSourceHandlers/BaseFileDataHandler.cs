@@ -66,7 +66,7 @@ public class BaseFileDataHandler(InvocationContext context) : GithubInvocable(co
                 : await ClientSdk.Repository.Content.GetAllContents(repoId, pathForApi);
         });
 
-        var items = contents.Select(x =>
+        var items = contents.Where(x => x.Type == ContentType.Dir || filesAreSelectable).Select(x =>
         {
             var isFolder = x.Type == ContentType.Dir;
             return isFolder
