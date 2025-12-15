@@ -9,7 +9,7 @@ namespace Apps.GitHub;
 
 public class GithubInvocable : BaseInvocable
 {
-    protected IEnumerable<AuthenticationCredentialsProvider> Creds =>
+    public IEnumerable<AuthenticationCredentialsProvider> Creds =>
         InvocationContext.AuthenticationCredentialsProviders;
 
     protected GithubOctokitClient ClientSdk { get; }
@@ -20,6 +20,8 @@ public class GithubInvocable : BaseInvocable
         ClientSdk = new(Creds);
         ClientRest = new(Creds);
     }
+
+    protected bool IsUsingPersonalAccessToken => Creds.First(p => p.KeyName == "Authorization").Value.StartsWith("github_pat");
 
     protected async Task ExecuteWithErrorHandlingAsync(Func<Task> action)
     {
