@@ -14,15 +14,23 @@ Before you can connect you need to make sure that:
 
 - You have a Github account.
 - You have owner permissions on the repository you want to automate on.
+- You can either create a personal access token or you can connect using OAuth.
+
+### Creating a personal access token
+
+If you're opting for a personal access token, make sure the token has the following permissions:
+
+![1765812158439](image/README/1765812158439.png)
 
 ## Connecting
 
 1. Navigate to apps and search for Github. If you cannot find Github then click _Add App_ in the top right corner, select Github and add the app to your Blackbird environment.
 2. Click _Add Connection_.
 3. Name your connection for future reference e.g. 'My Github connection'.
-4. Click _Authorize connection_.
-5. Follow the instructions that Github gives you, authorizing Blackbird.io to act on your behalf.
-6. When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
+4. Choose between OAuth (default) and a personal access token. If using a personal access token then copy the token here.
+5. Click _Authorize connection_.
+6. Follow the instructions that Github gives you, authorizing Blackbird.io to act on your behalf.
+7. When you return to Blackbird, confirm that the connection has appeared and the status is _Connected_.
 
 ![1705402013379](image/README/1705402013379.png)
 
