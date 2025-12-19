@@ -11,6 +11,9 @@ namespace Apps.Github.Webhooks;
 [WebhookList]
 public class PushWebhooks
 {
+    private const string EventNameHeaderKey = "X-GitHub-Event";
+    private const string PingEventName = "ping";
+
     //[Webhook("On commit pushed", typeof(PushActionHandler), Description = "On commit pushed")]
     //public async Task<WebhookResponse<PushPayloadFlat>> CommitPushedHandler(WebhookRequest webhookRequest, [WebhookParameter] BranchInput branchInput)
     //{
@@ -32,6 +35,9 @@ public class PushWebhooks
         [WebhookParameter] FolderInput input, 
         [WebhookParameter] BranchInput branchInput)
     {
+        if (IsPingEvent(webhookRequest))
+            return GeneratePreflight<FilesListResponse>();
+
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
         if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
@@ -59,6 +65,9 @@ public class PushWebhooks
         [WebhookParameter] FolderInput input, 
         [WebhookParameter] BranchInput branchInput)
     {
+        if (IsPingEvent(webhookRequest))
+            return GeneratePreflight<FilesListResponse>();
+
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
         if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
@@ -86,6 +95,9 @@ public class PushWebhooks
         [WebhookParameter] FolderInput input, 
         [WebhookParameter] BranchInput branchInput)
     {
+        if (IsPingEvent(webhookRequest))
+            return GeneratePreflight<FilesListResponse>();
+
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
         if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
@@ -117,6 +129,9 @@ public class PushWebhooks
         [WebhookParameter] FolderInput input, 
         [WebhookParameter] BranchInput branchInput)
     {
+        if (IsPingEvent(webhookRequest))
+            return GeneratePreflight<FilesListResponse>();
+
         var data = JsonConvert.DeserializeObject<PushPayload>(webhookRequest.Body.ToString());
         if (data is null) { throw new InvalidCastException(nameof(webhookRequest.Body)); }
         if (!string.IsNullOrEmpty(branchInput.BranchName) && branchInput.BranchName != data.Ref.Split('/').Last()) return GeneratePreflight<FilesListResponse>();
@@ -173,5 +188,11 @@ public class PushWebhooks
         }
 
         return input.FolderPath;
+    }
+
+    private bool IsPingEvent(WebhookRequest webhookRequest)
+    {
+        var eventHeader = webhookRequest.Headers.FirstOrDefault(h => h.Key.Equals(EventNameHeaderKey, StringComparison.OrdinalIgnoreCase));
+        return eventHeader.Value != null && eventHeader.Value.Equals(PingEventName, StringComparison.OrdinalIgnoreCase);
     }
 }
