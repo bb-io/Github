@@ -1,6 +1,6 @@
 <xliff srcLang="en" trgLang="pseudo" version="2.2" xmlns:mda="urn:oasis:names:tc:xliff:metadata:2.0" xmlns:its="http://www.w3.org/2005/11/its" xmlns="urn:oasis:names:tc:xliff:document:2.2">
   <file id="f1">
-    <skeleton>{"app.cta":"Click on the Blackbird and React logos to learn more","app.greeting":"Blackbird Intl Example","app.headline":"Control this repo with a Bird and see the magic happen","app.locale":"Locale","languages.english":"English","languages.french":"French","languages.japanese":"Japanese","languages.ukrainian":"Ukrainian"}</skeleton>
+    <skeleton>{"app.cta":"Click on the Blackbird and React logos to learn more","app.greeting":"Blackbird Internationalization Example","app.headline":"Control this repo with a Bird and see the magic happen.","app.locale":"Languages","languages.dutch":"Dutch","languages.english":"English","languages.french":"French","languages.japanese":"Japanese","languages.ukrainian":"Ukrainian"}</skeleton>
     <mda:metadata>
       <mda:metaGroup category="blackbird">
         <mda:meta type="original-name">en.json</mda:meta>
@@ -40,8 +40,8 @@
         </mda:metaGroup>
       </mda:metadata>
       <segment state="translated">
-        <source>Blackbird Intl Example</source>
-        <target>Blackbird Intl Example - TRANSLATED</target>
+        <source>Blackbird Internationalization Example</source>
+        <target>Blackbird Internationalization Example - TRANSLATED</target>
       </segment>
     </unit>
     <unit id="u3" name="['app.headline']" its:tool="Pseudo">
@@ -56,8 +56,8 @@
         </mda:metaGroup>
       </mda:metadata>
       <segment state="translated">
-        <source>Control this repo with a Bird and see the magic happen</source>
-        <target>Control this repo with a Bird and see the magic happen - TRANSLATED</target>
+        <source>Control this repo with a Bird and see the magic happen.</source>
+        <target>Control this repo with a Bird and see the magic happen. - TRANSLATED</target>
       </segment>
     </unit>
     <unit id="u4" name="['app.locale']" its:tool="Pseudo">
@@ -72,11 +72,27 @@
         </mda:metaGroup>
       </mda:metadata>
       <segment state="translated">
-        <source>Locale</source>
-        <target>Locale - TRANSLATED</target>
+        <source>Languages</source>
+        <target>Languages - TRANSLATED</target>
       </segment>
     </unit>
-    <unit id="u5" name="['languages.english']" its:tool="Pseudo">
+    <unit id="u5" name="['languages.dutch']" its:tool="Pseudo">
+      <mda:metadata>
+        <mda:metaGroup category="blackbird">
+          <mda:metaGroup category="usage">
+            <mda:metaGroup category="Pseudo">
+              <mda:meta type="value">42</mda:meta>
+              <mda:meta type="unit">words</mda:meta>
+            </mda:metaGroup>
+          </mda:metaGroup>
+        </mda:metaGroup>
+      </mda:metadata>
+      <segment state="translated">
+        <source>Dutch</source>
+        <target>Dutch - TRANSLATED</target>
+      </segment>
+    </unit>
+    <unit id="u6" name="['languages.english']" its:tool="Pseudo">
       <mda:metadata>
         <mda:metaGroup category="blackbird">
           <mda:metaGroup category="usage">
@@ -92,7 +108,7 @@
         <target>English - TRANSLATED</target>
       </segment>
     </unit>
-    <unit id="u6" name="['languages.french']" its:tool="Pseudo">
+    <unit id="u7" name="['languages.french']" its:tool="Pseudo">
       <mda:metadata>
         <mda:metaGroup category="blackbird">
           <mda:metaGroup category="usage">
@@ -108,7 +124,7 @@
         <target>French - TRANSLATED</target>
       </segment>
     </unit>
-    <unit id="u7" name="['languages.japanese']" its:tool="Pseudo">
+    <unit id="u8" name="['languages.japanese']" its:tool="Pseudo">
       <mda:metadata>
         <mda:metaGroup category="blackbird">
           <mda:metaGroup category="usage">
@@ -124,7 +140,7 @@
         <target>Japanese - TRANSLATED</target>
       </segment>
     </unit>
-    <unit id="u8" name="['languages.ukrainian']" its:tool="Pseudo">
+    <unit id="u9" name="['languages.ukrainian']" its:tool="Pseudo">
       <mda:metadata>
         <mda:metaGroup category="blackbird">
           <mda:metaGroup category="usage">

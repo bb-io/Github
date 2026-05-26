@@ -1,8 +1,9 @@
 {
   "app.cta": "Click on the Blackbird and React logos to learn more",
-  "app.greeting": "Blackbird Intl Example",
-  "app.headline": "Control this repo with a Bird and see the magic happen",
-  "app.locale": "Locale",
+  "app.greeting": "Blackbird Internationalization Example",
+  "app.headline": "Control this repo with a Bird and see the magic happen.",
+  "app.locale": "Languages",
+  "languages.dutch": "Dutch",
   "languages.english": "English",
   "languages.french": "French",
   "languages.japanese": "Japanese",
