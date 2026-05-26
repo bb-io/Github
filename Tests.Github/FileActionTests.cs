@@ -93,7 +93,7 @@ public sealed class FileActionTests : TestBase
         var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest);
 
         var contentString = FileManager.ReadOutputAsString(result.Content);
-        var codedContent = (new JsonContentCoder()).Deserialize(contentString, result.Content.Name);
+        var codedContent = (new JsonCoder()).Deserialize(contentString, result.Content.Name);
 
         Assert.IsTrue(codedContent.Language == "en");
     }
@@ -118,8 +118,9 @@ public sealed class FileActionTests : TestBase
 
         var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest);
 
-        var contentString = FileManager.ReadOutputAsString(result.Content);
-        var transformation = Transformation.Parse(contentString, result.Content.Name);
+        var contentString = FileManager.ReadOutputAsStream(result.Content);
+        var transformation = Transformation.Load(contentString, result.Content.Name).Value;
+        Assert.IsNotNull(transformation);
 
         transformation.TargetLanguage = "pseudo";
         foreach (var unit in transformation.GetUnits())
@@ -136,7 +137,7 @@ public sealed class FileActionTests : TestBase
 
         var translation = transformation.Serialize();
 
-        var translatedFile = FileManager.CreateFileReferenceFromString(translation, MediaTypes.Xliff, transformation.XliffFileName);
+        var translatedFile = FileManager.CreateFileReferenceFromString(translation, MediaTypes.Xliff2, transformation.BilingualFileName);
 
         var uploadFileRequest = new CreateOrUpdateFileRequest
         {
@@ -148,9 +149,10 @@ public sealed class FileActionTests : TestBase
 
         var uploadResponse = await actions.CreateOrUpdateFile(repositoryRequest, branchRequest, uploadFileRequest);
 
-        var returnedContentString = FileManager.ReadOutputAsString(uploadResponse.Content);
-        var returnedTransformation = Transformation.Parse(returnedContentString, uploadResponse.Content.Name);
+        var returnedContentString = FileManager.ReadOutputAsStream(uploadResponse.Content);
+        var returnedTransformation = Transformation.Load(returnedContentString, uploadResponse.Content.Name).Value;
 
+        Assert.IsNotNull(returnedTransformation);
         Assert.AreEqual("Github", returnedTransformation.TargetSystemReference.SystemName);
         Assert.AreEqual("pseudo", returnedTransformation.TargetLanguage);
 

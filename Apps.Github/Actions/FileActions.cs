@@ -78,27 +78,30 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         return new FileResponse { Content = fileReference };
     }
 
-    private async Task<FileResponse> DownloadBlackbirdInteroperableFile(Octokit.RepositoryContent file)
+    private async Task<FileResponse> DownloadBlackbirdInteroperableFile(Octokit.RepositoryContent file, string? language = null)
     {
         var content = file.Content;
         var filename = Path.GetFileName(file.Path);
         if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
             mimeType = MediaTypeNames.Application.Octet;
 
-        var jsonContentCoder = new JsonContentCoder();        
-        if (jsonContentCoder.CanProcessContent(file.Content))
+        var transformationResult = Transformation.Load(content.ToStream(), filename, mimeType);
+        if (!transformationResult.Success)
         {
-            var codedContent = jsonContentCoder.Deserialize(file.Content, file.Name);
-            codedContent.Language = file.Name.Split('.')[0];
-            codedContent.SystemReference.ContentId = (new Uri(file.HtmlUrl)).AbsolutePath;
-            codedContent.SystemReference.AdminUrl = file.HtmlUrl;
-            codedContent.SystemReference.ContentName = file.Name;
-            codedContent.SystemReference.SystemName = "Github";
-            codedContent.SystemReference.SystemRef = "https://github.com/";
-            content = jsonContentCoder.Serialize(codedContent, MetadataHandling.Include);
+            var directFileReference = await fileManagementClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), mimeType, file.Name);
+            return new FileResponse { Content = directFileReference };
         }
 
-        var fileReference = await fileManagementClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), mimeType, file.Name);
+        var transformation = transformationResult.Value!;
+
+        transformation.SourceLanguage = language ?? file.Name.Split('.')[0];
+        transformation.SourceSystemReference.ContentId = (new Uri(file.HtmlUrl)).AbsolutePath;
+        transformation.SourceSystemReference.AdminUrl = file.HtmlUrl;
+        transformation.SourceSystemReference.ContentName = file.Name;
+        transformation.SourceSystemReference.SystemName = "Github";
+        transformation.SourceSystemReference.SystemRef = "https://github.com/";
+
+        var fileReference = await fileManagementClient.UploadAsync(transformation.Source().ToStream(), mimeType, file.Name);
 
         return new FileResponse { Content = fileReference };
     }
@@ -159,20 +162,20 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         [ActionParameter] CreateOrUpdateFileRequest createOrUpdateRequest)
     {
         var file = await fileManagementClient.DownloadAsync(createOrUpdateRequest.File);
-        var content = Encoding.UTF8.GetString(await file.GetByteData());
         var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () =>
             await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var oldFileName = createOrUpdateRequest!.File.Name;
 
-        Transformation? transformation = null;
-        if (Xliff2Serializer.IsXliff2(content) || Xliff1Serializer.IsXliff1(content))
+        string? content = null;
+        var transformationResult = Transformation.Load(file, createOrUpdateRequest.File.Name, createOrUpdateRequest.File.ContentType);
+        if (transformationResult.Success)
         {
-            transformation = Transformation.Parse(content, createOrUpdateRequest!.File.Name);
-            content = transformation.Target().Serialize(MetadataHandling.Exclude);
-            oldFileName = transformation.Target().OriginalName;
-            if (content == null)
-                throw new PluginMisconfigurationException("XLIFF did not contain any files");
+            content = transformationResult.Value.Target().ToStream(MetadataHandling.Exclude).ReadString();
         }
+        else
+        {
+            content = Encoding.UTF8.GetString(await file.GetByteData());
+        }       
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
         var filePath = $"{createOrUpdateRequest?.FolderPath?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
@@ -224,9 +227,10 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         var output = new FileResponse { Content = createOrUpdateRequest.File };
 
-        if (transformation is not null)
+        if (transformationResult.Success)
         {
             var uploadedFileInfo = await GetFileInfo(repositoryInfo, branchRequest, filePath);
+            var transformation = transformationResult.Value;
 
             transformation.TargetSystemReference.ContentId = (new Uri(uploadedFileInfo.HtmlUrl)).AbsolutePath;
             transformation.TargetSystemReference.ContentName = uploadedFileInfo.Name;
@@ -236,9 +240,9 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             transformation.TargetLanguage = fileName.Split('.')[0];
 
             output.Content = await fileManagementClient.UploadAsync(
-                transformation.Serialize().ToStream(),
-                MediaTypes.Xliff,
-                transformation.XliffFileName);
+                transformation.ToStream(),
+                MediaTypes.Xliff2,
+                transformation.BilingualFileName);
         }
 
         return output;
