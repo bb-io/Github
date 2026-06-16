@@ -169,21 +169,19 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         bool isJson = oldFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         string? content = null;
         var transformationResult = Transformation.Load(file, createOrUpdateRequest.File.Name, createOrUpdateRequest.File.ContentType);
+
+        if (isJson)
+        {
+            content = transformationResult.Value.Source().ToStream(MetadataHandling.Exclude).ReadString();
+
+        } else
         if (transformationResult.Success && !isJson)
         {
             content = transformationResult.Value.Target().ToStream(MetadataHandling.Exclude).ReadString();
         }
         else
-        {            
-            content = Encoding.UTF8.GetString(await file.GetByteData());
-        }
-
-        if (isJson)
         {
-            content = transformationResult.Value.Source().ToStream(MetadataHandling.Exclude).ReadString();
-            //string pattern = @",\s*""__blackbird_meta""[\s\S]+$";
-
-            //content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "\n}"); 
+            content = Encoding.UTF8.GetString(await file.GetByteData());
         }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
