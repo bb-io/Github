@@ -166,16 +166,23 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var oldFileName = createOrUpdateRequest!.File.Name;
 
+        bool isJson = oldFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         string? content = null;
         var transformationResult = Transformation.Load(file, createOrUpdateRequest.File.Name, createOrUpdateRequest.File.ContentType);
-        if (transformationResult.Success)
+
+        if (isJson)
+        {
+            content = transformationResult.Value.Source().ToStream(MetadataHandling.Exclude).ReadString();
+
+        } else
+        if (transformationResult.Success && !isJson)
         {
             content = transformationResult.Value.Target().ToStream(MetadataHandling.Exclude).ReadString();
         }
         else
         {
             content = Encoding.UTF8.GetString(await file.GetByteData());
-        }       
+        }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
         var filePath = $"{createOrUpdateRequest?.FolderPath?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
@@ -210,7 +217,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             {
                 createFileDictionary.Add("branch", branchRequest.Name);
             }
-            
+
             var createFileRequest = new RestRequest(url, Method.Put)
                 .AddBody(createFileDictionary);
 
@@ -227,7 +234,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         var output = new FileResponse { Content = createOrUpdateRequest.File };
 
-        if (transformationResult.Success)
+        if (transformationResult.Success && !isJson)
         {
             var uploadedFileInfo = await GetFileInfo(repositoryInfo, branchRequest, filePath);
             var transformation = transformationResult.Value;
