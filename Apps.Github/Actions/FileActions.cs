@@ -180,7 +180,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         if (isJson)
         {
-            content = content = transformationResult.Value.Target().ToStream().ReadString();
+            content = transformationResult.Value.Source().ToStream(MetadataHandling.Exclude).ReadString();
             //string pattern = @",\s*""__blackbird_meta""[\s\S]+$";
 
             //content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "\n}"); 
