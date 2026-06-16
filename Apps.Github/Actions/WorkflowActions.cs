@@ -44,7 +44,7 @@ namespace Apps.GitHub.Actions
                 Repository = $"{repo.Owner.Login}/{repo.Name}",
                 Workflow = input.Workflow,
                 Ref = input.Ref,
-                Inputs = inputsDict,
+                InputsJson = input.InputsJson,
                 Status = "requested"
             };
         }
