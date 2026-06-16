@@ -175,6 +175,10 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         }
         else
         {
+            if (file.CanSeek)
+            {
+                file.Position = 0;
+            }
             content = Encoding.UTF8.GetString(await file.GetByteData());
         }
 
@@ -182,7 +186,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         {
             string pattern = @",\s*""__blackbird_meta""[\s\S]+$";
 
-            content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "}"); 
+            content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "\n}"); 
         }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
