@@ -174,19 +174,16 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             content = transformationResult.Value.Target().ToStream(MetadataHandling.Exclude).ReadString();
         }
         else
-        {
-            if (file.CanSeek)
-            {
-                file.Position = 0;
-            }
+        {            
             content = Encoding.UTF8.GetString(await file.GetByteData());
         }
 
         if (isJson)
         {
-            string pattern = @",\s*""__blackbird_meta""[\s\S]+$";
+            content = content = transformationResult.Value.Target().ToStream().ReadString();
+            //string pattern = @",\s*""__blackbird_meta""[\s\S]+$";
 
-            content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "\n}"); 
+            //content = System.Text.RegularExpressions.Regex.Replace(content, pattern, "\n}"); 
         }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
