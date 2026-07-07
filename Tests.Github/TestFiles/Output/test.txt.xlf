@@ -1,0 +1,20 @@
+<xliff version="2.2" xmlns:mda="urn:oasis:names:tc:xliff:metadata:2.0" xmlns="urn:oasis:names:tc:xliff:document:2.2">
+  <file id="f1">
+    <skeleton>this is a test text changed</skeleton>
+    <mda:metadata>
+      <mda:metaGroup category="blackbird">
+        <mda:meta type="original-name">test.txt</mda:meta>
+        <mda:meta type="original-media-type">text/plain</mda:meta>
+        <mda:meta type="target-content-name">test.txt</mda:meta>
+        <mda:meta type="target-admin-url">https://github.com/mathijs-bb/test-repo/blob/master/folder/test.txt</mda:meta>
+        <mda:meta type="target-system-name">Github</mda:meta>
+        <mda:meta type="target-system-ref">https://github.com/</mda:meta>
+      </mda:metaGroup>
+    </mda:metadata>
+    <unit id="u1" name="">
+      <segment>
+        <source>this is a test text changed</source>
+      </segment>
+    </unit>
+  </file>
+</xliff>

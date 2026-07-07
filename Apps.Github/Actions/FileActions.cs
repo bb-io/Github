@@ -4,6 +4,7 @@ using Apps.GitHub.Api;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Extensions;
+using Apps.GitHub.Models;
 using Apps.GitHub.Models.Branch.Requests;
 using Apps.GitHub.Models.File.Requests;
 using Apps.GitHub.Models.File.Responses;
@@ -84,6 +85,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         if (!transformationResult.Success)
         {
             var directFileReference = await fileManagementClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), mimeType, file.Name);
+            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {transformationResult.Error}", []);
             return new FileResponse { Content = directFileReference };
         }
 
@@ -181,12 +183,14 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         }
         else
         {
+            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {transformationResult.Error}", []);
             content = file.ReadString();
         }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
         var filePath = $"{createOrUpdateRequest?.FolderPath?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
         var url = $"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}";
+        FileUploadDto? fileUploadDto = null;
 
         try
         {
@@ -221,7 +225,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             var createFileRequest = new RestRequest(url, Method.Put)
                 .AddBody(createFileDictionary);
 
-            await ClientRest.ExecuteWithErrorHandling(createFileRequest);
+            fileUploadDto = await ClientRest.ExecuteWithErrorHandling<FileUploadDto>(createFileRequest);
         }
         catch (GithubErrorException ex)
         {
@@ -236,18 +240,33 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         if (transformationResult.Success)
         {
-            var uploadedFileInfo = await GetFileInfo(repositoryInfo, branchRequest, filePath);
             var transformation = transformationResult.Value;
 
-            transformation.TargetSystemReference.ContentName = uploadedFileInfo.Name;
-            transformation.TargetSystemReference.AdminUrl = uploadedFileInfo.HtmlUrl;
+            transformation.TargetSystemReference.ContentName = fileUploadDto.Content.Name;
+            transformation.TargetSystemReference.AdminUrl = fileUploadDto.Content.HtmlUrl;
             transformation.TargetSystemReference.SystemName = "Github";
             transformation.TargetSystemReference.SystemRef = "https://github.com/";
 
-            output.Content = await fileManagementClient.UploadAsync(
-                transformation.ToStream(),
-                MediaTypes.Xliff2,
-                transformation.BilingualFileName);
+            if (transformationResult.WasBilingual)
+            {               
+                output.Content = await fileManagementClient.UploadAsync(
+                    transformation.ToStream(),
+                    MediaTypes.Xliff2,
+                    transformation.BilingualFileName);
+            }
+            else
+            {
+                var targetResult = transformation.Target();
+                if (!targetResult.Success) throw new PluginMisconfigurationException(targetResult.Error);
+
+                var target = targetResult.Value;
+                target.SystemReference = transformation.TargetSystemReference;
+
+                output.Content = await fileManagementClient.UploadAsync(
+                    target.ToStream(),
+                    target.OriginalMediaType,
+                    target.OriginalName);
+            }            
         }
 
         return output;

@@ -36,11 +36,11 @@ public sealed class FileActionTests : TestBase
         var actions = new FileActions(InvocationContext, FileManager);
         var repositoryRequest = new GetRepositoryRequest
         {
-            RepositoryId = "930409607"
+            RepositoryId = "670642034"
         };
         var branchRequest = new GetOptionalBranchRequest
         {
-            Name = "main"
+            Name = "master"
         };
         var fileRequest = new CreateOrUpdateFileRequest
         {
@@ -90,7 +90,7 @@ public sealed class FileActionTests : TestBase
         };
 
 
-        var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest);
+        var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest, new FileMetaRequest { LanguageCode = "en"});
 
         var contentString = FileManager.ReadOutputAsString(result.Content);
         var codedContent = (new JsonCoder()).Deserialize(contentString, result.Content.Name);
@@ -116,7 +116,7 @@ public sealed class FileActionTests : TestBase
         };
 
 
-        var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest);
+        var result = await actions.DownloadFile(repositoryRequest, branchRequest, fileRequest, new FileMetaRequest { LanguageCode = "en" });
 
         var contentString = FileManager.ReadOutputAsStream(result.Content);
         var transformation = Transformation.Load(contentString, result.Content.Name).Value;
