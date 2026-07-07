@@ -1,4 +1,6 @@
-﻿namespace Apps.GitHub.Dtos.Rest;
+﻿using Newtonsoft.Json;
+
+namespace Apps.GitHub.Dtos.Rest;
 
 public class FileContentDto
 {
@@ -7,6 +9,8 @@ public class FileContentDto
     public string Sha { get; set; }
     public int Size { get; set; }
     public string Url { get; set; }
+
+    [JsonProperty("html_url")]
     public string HtmlUrl { get; set; }
     public string GitUrl { get; set; }
     public string DownloadUrl { get; set; }

@@ -4,6 +4,7 @@ using Apps.GitHub.Api;
 using Apps.GitHub.Dtos;
 using Apps.GitHub.Dtos.Rest;
 using Apps.GitHub.Extensions;
+using Apps.GitHub.Models;
 using Apps.GitHub.Models.Branch.Requests;
 using Apps.GitHub.Models.File.Requests;
 using Apps.GitHub.Models.File.Responses;
@@ -13,18 +14,12 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
-using Blackbird.Applications.Sdk.Utils.Extensions.Files;
-using Blackbird.Applications.SDK.Extensions.FileManagement;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using Blackbird.Filters.Coders;
 using Blackbird.Filters.Constants;
 using Blackbird.Filters.Enums;
 using Blackbird.Filters.Extensions;
 using Blackbird.Filters.Transformations;
-using Blackbird.Filters.Xliff.Xliff1;
-using Blackbird.Filters.Xliff.Xliff2;
 using RestSharp;
-using System.IO;
 using System.Net.Mime;
 using System.Text;
 
@@ -38,7 +33,8 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
     public async Task<FileResponse> DownloadFile(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] GetOptionalBranchRequest branchRequest,
-        [ActionParameter] DownloadFileRequest downloadFileRequest)
+        [ActionParameter] DownloadFileRequest downloadFileRequest,
+        [ActionParameter] FileMetaRequest fileMetaRequest)
     {
         var repositoryInfo = await ExecuteWithErrorHandlingAsync(async () =>
             await ClientSdk.Repository.Get(long.Parse(repositoryRequest
@@ -48,7 +44,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         if (file.Content != null)
         {
-            return await DownloadBlackbirdInteroperableFile(file);
+            return await DownloadBlackbirdInteroperableFile(file, fileMetaRequest.LanguageCode, fileMetaRequest.ContentId);
         }
 
         return DownloadFileOnCore(file);
@@ -78,7 +74,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         return new FileResponse { Content = fileReference };
     }
 
-    private async Task<FileResponse> DownloadBlackbirdInteroperableFile(Octokit.RepositoryContent file, string? language = null)
+    private async Task<FileResponse> DownloadBlackbirdInteroperableFile(Octokit.RepositoryContent file, string language, string contentId)
     {
         var content = file.Content;
         var filename = Path.GetFileName(file.Path);
@@ -89,19 +85,26 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         if (!transformationResult.Success)
         {
             var directFileReference = await fileManagementClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), mimeType, file.Name);
+            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {transformationResult.Error}", []);
             return new FileResponse { Content = directFileReference };
         }
 
         var transformation = transformationResult.Value!;
 
-        transformation.SourceLanguage = language ?? file.Name.Split('.')[0];
-        transformation.SourceSystemReference.ContentId = (new Uri(file.HtmlUrl)).AbsolutePath;
+        transformation.SourceLanguage = language;
+        transformation.SourceSystemReference.ContentId = contentId;
         transformation.SourceSystemReference.AdminUrl = file.HtmlUrl;
         transformation.SourceSystemReference.ContentName = file.Name;
         transformation.SourceSystemReference.SystemName = "Github";
         transformation.SourceSystemReference.SystemRef = "https://github.com/";
 
-        var fileReference = await fileManagementClient.UploadAsync(transformation.Source().ToStream(), mimeType, file.Name);
+        var sourceResult = transformation.Source();
+        if (!sourceResult.Success)
+        {
+            throw new PluginMisconfigurationException(sourceResult.Error);
+        }
+
+        var fileReference = await fileManagementClient.UploadAsync(sourceResult.Value.ToStream(), mimeType, file.Name);
 
         return new FileResponse { Content = fileReference };
     }
@@ -166,27 +169,28 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             await ClientSdk.Repository.Get(long.Parse(repositoryRequest.RepositoryId)));
         var oldFileName = createOrUpdateRequest!.File.Name;
 
-        bool isJson = oldFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
         string? content = null;
         var transformationResult = Transformation.Load(file, createOrUpdateRequest.File.Name, createOrUpdateRequest.File.ContentType);
 
-        if (isJson)
+        if (transformationResult.Success)
         {
-            content = transformationResult.Value.Source().ToStream(MetadataHandling.Exclude).ReadString();
-
-        } else
-        if (transformationResult.Success && !isJson)
-        {
-            content = transformationResult.Value.Target().ToStream(MetadataHandling.Exclude).ReadString();
+            var contentResult = transformationResult.Value.Target();
+            if (!contentResult.Success)
+            {
+                throw new PluginMisconfigurationException(contentResult.Error);
+            }
+            content = contentResult.Value.ToStream(MetadataHandling.Exclude).ReadString();
         }
         else
         {
-            content = Encoding.UTF8.GetString(await file.GetByteData());
+            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {transformationResult.Error}", []);
+            content = file.ReadString();
         }
 
         var fileName = GetNewFileName(oldFileName, createOrUpdateRequest.NewFileName);
         var filePath = $"{createOrUpdateRequest?.FolderPath?.TrimEnd('/')}/{fileName.TrimStart('/')}".TrimStart('/');
         var url = $"/{repositoryInfo.Owner.Login}/{repositoryInfo.Name}/contents/{filePath}";
+        FileUploadDto? fileUploadDto = null;
 
         try
         {
@@ -221,7 +225,7 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
             var createFileRequest = new RestRequest(url, Method.Put)
                 .AddBody(createFileDictionary);
 
-            await ClientRest.ExecuteWithErrorHandling(createFileRequest);
+            fileUploadDto = await ClientRest.ExecuteWithErrorHandling<FileUploadDto>(createFileRequest);
         }
         catch (GithubErrorException ex)
         {
@@ -234,22 +238,35 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
 
         var output = new FileResponse { Content = createOrUpdateRequest.File };
 
-        if (transformationResult.Success && !isJson)
+        if (transformationResult.Success)
         {
-            var uploadedFileInfo = await GetFileInfo(repositoryInfo, branchRequest, filePath);
             var transformation = transformationResult.Value;
 
-            transformation.TargetSystemReference.ContentId = (new Uri(uploadedFileInfo.HtmlUrl)).AbsolutePath;
-            transformation.TargetSystemReference.ContentName = uploadedFileInfo.Name;
-            transformation.TargetSystemReference.AdminUrl = uploadedFileInfo.HtmlUrl;
+            transformation.TargetSystemReference.ContentName = fileUploadDto.Content.Name;
+            transformation.TargetSystemReference.AdminUrl = fileUploadDto.Content.HtmlUrl;
             transformation.TargetSystemReference.SystemName = "Github";
             transformation.TargetSystemReference.SystemRef = "https://github.com/";
-            transformation.TargetLanguage = fileName.Split('.')[0];
 
-            output.Content = await fileManagementClient.UploadAsync(
-                transformation.ToStream(),
-                MediaTypes.Xliff2,
-                transformation.BilingualFileName);
+            if (transformationResult.WasBilingual)
+            {               
+                output.Content = await fileManagementClient.UploadAsync(
+                    transformation.ToStream(),
+                    MediaTypes.Xliff2,
+                    transformation.BilingualFileName);
+            }
+            else
+            {
+                var targetResult = transformation.Target();
+                if (!targetResult.Success) throw new PluginMisconfigurationException(targetResult.Error);
+
+                var target = targetResult.Value;
+                target.SystemReference = transformation.TargetSystemReference;
+
+                output.Content = await fileManagementClient.UploadAsync(
+                    target.ToStream(),
+                    target.OriginalMediaType,
+                    target.OriginalName);
+            }            
         }
 
         return output;
