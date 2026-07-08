@@ -81,30 +81,24 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         if (!MimeTypes.TryGetMimeType(filename, out var mimeType))
             mimeType = MediaTypeNames.Application.Octet;
 
-        var transformationResult = Transformation.Load(content.ToStream(), filename, mimeType);
-        if (!transformationResult.Success)
+        var fileResult = Transformation.Load(content.ToStream(), filename, mimeType).Source();
+        if (!fileResult.Success)
         {
-            var directFileReference = await fileManagementClient.UploadAsync(new MemoryStream(Encoding.UTF8.GetBytes(content)), mimeType, file.Name);
-            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {transformationResult.Error}", []);
+            var directFileReference = await fileManagementClient.UploadAsync(content.ToStream(), mimeType, file.Name);
+            InvocationContext.Logger?.LogInformation($"Not a Blackbird interoperable file: {fileResult.Error}", []);
             return new FileResponse { Content = directFileReference };
         }
 
-        var transformation = transformationResult.Value!;
+        var fileContent = fileResult.Value;
 
-        transformation.SourceLanguage = language;
-        transformation.SourceSystemReference.ContentId = contentId;
-        transformation.SourceSystemReference.AdminUrl = file.HtmlUrl;
-        transformation.SourceSystemReference.ContentName = file.Name;
-        transformation.SourceSystemReference.SystemName = "Github";
-        transformation.SourceSystemReference.SystemRef = "https://github.com/";
+        fileContent.Language = language;
+        fileContent.SystemReference.ContentId = contentId;
+        fileContent.SystemReference.AdminUrl = file.HtmlUrl;
+        fileContent.SystemReference.ContentName = file.Name;
+        fileContent.SystemReference.SystemName = "Github";
+        fileContent.SystemReference.SystemRef = "https://github.com/";
 
-        var sourceResult = transformation.Source();
-        if (!sourceResult.Success)
-        {
-            throw new PluginMisconfigurationException(sourceResult.Error);
-        }
-
-        var fileReference = await fileManagementClient.UploadAsync(sourceResult.Value.ToStream(), mimeType, file.Name);
+        var fileReference = await fileManagementClient.UploadAsync(fileContent.ToStream(), mimeType, file.Name);
 
         return new FileResponse { Content = fileReference };
     }
@@ -172,13 +166,9 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         string? content = null;
         var transformationResult = Transformation.Load(file, createOrUpdateRequest.File.Name, createOrUpdateRequest.File.ContentType);
 
-        if (transformationResult.Success)
+        var contentResult = transformationResult.Target();
+        if (contentResult.Success)
         {
-            var contentResult = transformationResult.Value.Target();
-            if (!contentResult.Success)
-            {
-                throw new PluginMisconfigurationException(contentResult.Error);
-            }
             content = contentResult.Value.ToStream(MetadataHandling.Exclude).ReadString();
         }
         else
@@ -241,14 +231,13 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
         if (transformationResult.Success)
         {
             var transformation = transformationResult.Value;
-
             transformation.TargetSystemReference.ContentName = fileUploadDto.Content.Name;
             transformation.TargetSystemReference.AdminUrl = fileUploadDto.Content.HtmlUrl;
             transformation.TargetSystemReference.SystemName = "Github";
             transformation.TargetSystemReference.SystemRef = "https://github.com/";
 
             if (transformationResult.WasBilingual)
-            {               
+            {
                 output.Content = await fileManagementClient.UploadAsync(
                     transformation.ToStream(),
                     MediaTypes.Xliff2,
