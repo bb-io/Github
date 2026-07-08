@@ -249,6 +249,8 @@ public class FileActions(InvocationContext invocationContext, IFileManagementCli
                 if (!targetResult.Success) throw new PluginMisconfigurationException(targetResult.Error);
 
                 var target = targetResult.Value;
+                target.SystemReference = transformation.TargetSystemReference;
+
                 output.Content = await fileManagementClient.UploadAsync(
                     target.ToStream(),
                     target.OriginalMediaType,
