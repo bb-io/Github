@@ -192,6 +192,11 @@ public class PushWebhooks
 
     private bool IsPingEvent(WebhookRequest webhookRequest)
     {
+        if (webhookRequest.Headers == null)
+        {
+            return false;
+        }
+
         var eventHeader = webhookRequest.Headers.FirstOrDefault(h => h.Key.Equals(EventNameHeaderKey, StringComparison.OrdinalIgnoreCase));
         return eventHeader.Value != null && eventHeader.Value.Equals(PingEventName, StringComparison.OrdinalIgnoreCase);
     }

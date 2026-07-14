@@ -8,5 +8,7 @@ public class PullRequestCommitDto(PullRequestCommit source)
 
     public string Url { get; set; } = source.Url;
 
-    public string AuthorLogin { get; set; } = source.Author.Login;
+    public string AuthorLogin { get; set; } = source.Author?.Login ?? string.Empty;
+
+    public string Message { get; set; } = source.Commit.Message;
 }
