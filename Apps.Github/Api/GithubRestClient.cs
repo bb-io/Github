@@ -9,9 +9,7 @@ namespace Apps.GitHub.Api;
 public class GithubRestClient : BlackBirdRestClient
 {
     public GithubRestClient(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
-        : base(
-            new RestClientOptions { ThrowOnAnyError = true, BaseUrl = new Uri("https://api.github.com/repos") }
-        )
+        : base(new RestClientOptions { BaseUrl = new Uri("https://api.github.com/repos") })
     {
         this.AddDefaultHeader("Authorization", GetAcessTokenKey(authenticationCredentialsProviders));
     }
