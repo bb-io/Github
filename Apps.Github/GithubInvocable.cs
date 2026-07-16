@@ -25,7 +25,15 @@ public class GithubInvocable : BaseInvocable
         ClientRest = new(Creds);
     }
 
-    protected bool IsUsingPersonalAccessToken => Creds.First(p => p.KeyName == "Authorization").Value.StartsWith("github_pat");
+    protected bool IsUsingPersonalAccessToken
+    {
+        get
+        {
+            var token = Creds.First(p => p.KeyName == "Authorization").Value;
+            return token.StartsWith("github_pat_", StringComparison.OrdinalIgnoreCase)
+                || token.StartsWith("ghp_", StringComparison.OrdinalIgnoreCase);
+        }
+    }
 
     protected async Task ExecuteWithErrorHandlingAsync(Func<Task> action)
     {

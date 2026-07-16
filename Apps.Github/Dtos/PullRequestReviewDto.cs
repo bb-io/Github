@@ -1,26 +1,25 @@
-using Apps.Github.Models.PullRequest.Payloads;
 using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.Github.Dtos;
 
-public class PullRequestReviewDto(PullRequestReviewPayload source)
+public class PullRequestReviewDto
 {
-    public string Id { get; set; } = source.Id.ToString();
+    public string Id { get; set; } = string.Empty;
 
-    public string NodeId { get; set; } = source.NodeId ?? string.Empty;
+    public string NodeId { get; set; } = string.Empty;
 
-    public string Body { get; set; } = source.Body ?? string.Empty;
+    public string Body { get; set; } = string.Empty;
 
-    public string State { get; set; } = source.State ?? string.Empty;
+    public string State { get; set; } = string.Empty;
 
     [Display("Commit ID")]
-    public string CommitId { get; set; } = source.CommitId ?? string.Empty;
+    public string CommitId { get; set; } = string.Empty;
 
     [Display("HTML URL")]
-    public string HtmlUrl { get; set; } = source.HtmlUrl ?? string.Empty;
+    public string HtmlUrl { get; set; } = string.Empty;
 
-    public string UserLogin { get; set; } = source.User?.Login ?? string.Empty;
+    public string UserLogin { get; set; } = string.Empty;
 
     [Display("Submitted at")]
-    public DateTimeOffset? SubmittedAt { get; set; } = source.SubmittedAt;
+    public DateTime? SubmittedAt { get; set; }
 }

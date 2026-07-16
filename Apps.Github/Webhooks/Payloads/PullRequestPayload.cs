@@ -45,7 +45,7 @@ public class Html
 
 public class Installation
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string NodeId { get; set; }
 }
 
@@ -69,7 +69,7 @@ public class Links
 public class PullRequest
 {
     public string Url { get; set; }
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string NodeId { get; set; }
     public string HtmlUrl { get; set; }
     public string DiffUrl { get; set; }
@@ -108,7 +108,7 @@ public class PullRequest
 
 public class Repo
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string NodeId { get; set; }
     public string Name { get; set; }
     public string FullName { get; set; }
@@ -183,7 +183,7 @@ public class Statuses
 public class User
 {
     public string Login { get; set; }
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string NodeId { get; set; }
     public string AvatarUrl { get; set; }
     public string GravatarId { get; set; }

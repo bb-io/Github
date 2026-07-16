@@ -10,6 +10,7 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Octokit;
 using RestSharp;
 using IssueCommentPayload = Apps.Github.Models.PullRequest.Payloads.IssueCommentPayload;
@@ -42,22 +43,25 @@ public class PullRequestActions(InvocationContext invocationContext)
         return new PullRequestDto(pullRequest);
     }
 
-    [Action("List pull request files", Description = "List files changed in a pull request")]
-    public async Task<ListPullRequestFilesResponse> ListPullRequestFiles(
+    [Action("Search files in pull request", Description = "Search files changed in a pull request")]
+    public async Task<SearchPullRequestFilesResponse> SearchPullRequestFiles(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] PullRequestIdentifierRequest input)
     {
         var files = await ExecuteWithErrorHandlingAsync(async () =>
             await ClientSdk.PullRequest.Files(long.Parse(repositoryRequest.RepositoryId), ParsePullRequestNumber(input.PullRequestNumber)));
 
+        var fileDtos = files.Select(x => new PullRequestFileDto(x)).ToList();
+
         return new()
         {
-            Files = files.Select(x => new PullRequestFileDto(x)).ToList()
+            Files = fileDtos,
+            FilesJson = JsonConvert.SerializeObject(fileDtos)
         };
     }
 
-    [Action("List pull request commits", Description = "List commits included in a pull request")]
-    public async Task<ListPullRequestCommitsResponse> ListPullRequestCommits(
+    [Action("Search commits in pull request", Description = "Search commits included in a pull request")]
+    public async Task<SearchPullRequestCommitsResponse> SearchPullRequestCommits(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] PullRequestIdentifierRequest input)
     {
@@ -70,8 +74,8 @@ public class PullRequestActions(InvocationContext invocationContext)
         };
     }
 
-    [Action("List issue comments for pull request", Description = "List issue comments for a pull request")]
-    public async Task<ListIssueCommentsResponse> ListIssueComments(
+    [Action("Search issue comments in pull request", Description = "Search issue comments in a pull request")]
+    public async Task<SearchIssueCommentsResponse> SearchIssueComments(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] PullRequestIdentifierRequest input)
     {
@@ -93,13 +97,21 @@ public class PullRequestActions(InvocationContext invocationContext)
     {
         var repository = await GetRepositoryAsync(repositoryRequest.RepositoryId);
         var request = CreateRestRequest($"/{repository.Owner.Login}/{repository.Name}/issues/{identifier.PullRequestNumber}/comments", Method.Post);
-        request.AddJsonBody(new
+        var body = new
         {
             body = input.Body
-        });
+        };
 
-        var comment = await ClientRest.ExecuteWithErrorHandling<IssueCommentPayload>(request);
-        return new(comment);
+        request.AddJsonBody(body);
+        var response = await ClientRest.ExecuteAsync(request);
+
+        if (!response.IsSuccessful)
+        {
+            var error = TryParseGithubError(response.Content);
+            throw new PluginApplicationException(error ?? response.ErrorMessage ?? "GitHub did not accept the issue comment request.");
+        }
+
+        return ParseIssueCommentResponse(response.Content, input.Body);
     }
 
     [Action("Update issue comment", Description = "Update an existing issue comment")]
@@ -110,17 +122,25 @@ public class PullRequestActions(InvocationContext invocationContext)
     {
         var repository = await GetRepositoryAsync(repositoryRequest.RepositoryId);
         var request = CreateRestRequest($"/{repository.Owner.Login}/{repository.Name}/issues/comments/{identifier.CommentId}", Method.Patch);
-        request.AddJsonBody(new
+        var body = new
         {
             body = input.Body
-        });
+        };
 
-        var comment = await ClientRest.ExecuteWithErrorHandling<IssueCommentPayload>(request);
-        return new(comment);
+        request.AddJsonBody(body);
+        var response = await ClientRest.ExecuteAsync(request);
+
+        if (!response.IsSuccessful)
+        {
+            var error = TryParseGithubError(response.Content);
+            throw new PluginApplicationException(error ?? response.ErrorMessage ?? "GitHub did not accept the issue comment update request.");
+        }
+
+        return ParseIssueCommentResponse(response.Content, input.Body);
     }
 
-    [Action("List pull request review comments", Description = "List inline review comments for a pull request")]
-    public async Task<ListPullRequestReviewCommentsResponse> ListPullRequestReviewComments(
+    [Action("Search review comments in pull request", Description = "Search inline review comments in a pull request")]
+    public async Task<SearchPullRequestReviewCommentsResponse> SearchPullRequestReviewComments(
         [ActionParameter] GetRepositoryRequest repositoryRequest,
         [ActionParameter] PullRequestIdentifierRequest input)
     {
@@ -140,6 +160,14 @@ public class PullRequestActions(InvocationContext invocationContext)
         [ActionParameter] PullRequestIdentifierRequest identifier,
         [ActionParameter] CreatePullRequestReviewRequest input)
     {
+        return await CreatePullRequestReviewInternal(repositoryRequest, identifier, input);
+    }
+
+    private async Task<PullRequestReviewDto> CreatePullRequestReviewInternal(
+        GetRepositoryRequest repositoryRequest,
+        PullRequestIdentifierRequest identifier,
+        CreatePullRequestReviewRequest input)
+    {
         var repository = await GetRepositoryAsync(repositoryRequest.RepositoryId);
         var request = CreateRestRequest($"/{repository.Owner.Login}/{repository.Name}/pulls/{identifier.PullRequestNumber}/reviews", Method.Post);
 
@@ -157,9 +185,15 @@ public class PullRequestActions(InvocationContext invocationContext)
         }
 
         request.AddJsonBody(body);
+        var response = await ClientRest.ExecuteAsync(request);
 
-        var review = await ClientRest.ExecuteWithErrorHandling<PullRequestReviewPayload>(request);
-        return new(review);
+        if (!response.IsSuccessful)
+        {
+            var error = TryParseGithubError(response.Content);
+            throw new PluginApplicationException(error ?? response.ErrorMessage ?? "GitHub did not accept the pull request review request.");
+        }
+
+        return ParsePullRequestReviewResponse(response.Content, input);
     }
 
     [Action("Compare commits", Description = "Compare two references and return the changed commits and files")]
@@ -241,5 +275,116 @@ public class PullRequestActions(InvocationContext invocationContext)
         }
 
         return result;
+    }
+
+    private static PullRequestReviewDto ParsePullRequestReviewResponse(string? content, CreatePullRequestReviewRequest input)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return new PullRequestReviewDto
+            {
+                Body = input.Body ?? string.Empty,
+                CommitId = input.CommitId ?? string.Empty,
+                State = string.IsNullOrWhiteSpace(input.Event) ? "COMMENT" : input.Event
+            };
+        }
+
+        try
+        {
+            var json = JObject.Parse(content);
+            return new PullRequestReviewDto
+            {
+                Id = json["id"]?.ToString() ?? string.Empty,
+                NodeId = json["node_id"]?.ToString() ?? string.Empty,
+                Body = json["body"]?.ToString() ?? input.Body ?? string.Empty,
+                State = json["state"]?.ToString() ?? (string.IsNullOrWhiteSpace(input.Event) ? "COMMENT" : input.Event),
+                CommitId = json["commit_id"]?.ToString() ?? input.CommitId ?? string.Empty,
+                HtmlUrl = json["html_url"]?.ToString() ?? string.Empty,
+                UserLogin = json["user"]?["login"]?.ToString() ?? string.Empty,
+                SubmittedAt = DateTimeOffset.TryParse(json["submitted_at"]?.ToString(), out var submittedAt)
+                    ? submittedAt.UtcDateTime
+                    : null
+            };
+        }
+        catch
+        {
+            return new PullRequestReviewDto
+            {
+                Body = input.Body ?? string.Empty,
+                CommitId = input.CommitId ?? string.Empty,
+                State = string.IsNullOrWhiteSpace(input.Event) ? "COMMENT" : input.Event
+            };
+        }
+    }
+
+    private static IssueCommentDto ParseIssueCommentResponse(string? content, string? fallbackBody)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return new IssueCommentDto(new IssueCommentPayload
+            {
+                Body = fallbackBody
+            });
+        }
+
+        try
+        {
+            var payload = JsonConvert.DeserializeObject<IssueCommentPayload>(content);
+            if (payload is not null)
+            {
+                return new IssueCommentDto(payload);
+            }
+        }
+        catch
+        {
+            // Fall back to lenient parsing below.
+        }
+
+        try
+        {
+            var json = JObject.Parse(content);
+            return new IssueCommentDto(new IssueCommentPayload
+            {
+                Id = long.TryParse(json["id"]?.ToString(), out var id) ? id : 0,
+                NodeId = json["node_id"]?.ToString(),
+                Body = json["body"]?.ToString() ?? fallbackBody,
+                HtmlUrl = json["html_url"]?.ToString(),
+                User = new GithubUserPayload
+                {
+                    Login = json["user"]?["login"]?.ToString()
+                },
+                CreatedAt = DateTimeOffset.TryParse(json["created_at"]?.ToString(), out var createdAt)
+                    ? createdAt
+                    : null,
+                UpdatedAt = DateTimeOffset.TryParse(json["updated_at"]?.ToString(), out var updatedAt)
+                    ? updatedAt
+                    : null
+            });
+        }
+        catch
+        {
+            return new IssueCommentDto(new IssueCommentPayload
+            {
+                Body = fallbackBody
+            });
+        }
+    }
+
+    private static string? TryParseGithubError(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return null;
+        }
+
+        try
+        {
+            var error = JsonConvert.DeserializeObject<RestErrorDto>(content);
+            return error?.Message;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

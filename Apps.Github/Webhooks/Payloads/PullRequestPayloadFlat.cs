@@ -32,7 +32,7 @@ public class PullRequestPayloadFlat
     public int Number { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestHtmlUrl { get; set; }
-    public int PullRequestId { get; set; }
+    public long PullRequestId { get; set; }
     public string PullRequestTitle { get; set; }
     public string PullRequestBody { get; set; }
     public string HeadSha { get; set; }
@@ -44,5 +44,5 @@ public class PullRequestPayloadFlat
     public string RepositoryName { get; set; }
     public string RepositoryFullName { get; set; }
     public string SenderLogin { get; set; }
-    public int SenderId { get; set; }
+    public long SenderId { get; set; }
 }

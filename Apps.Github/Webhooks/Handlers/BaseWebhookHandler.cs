@@ -1,7 +1,6 @@
-﻿using Apps.Github.Webhooks.Bridge;
+using Apps.Github.Webhooks.Bridge;
 using Apps.Github.Webhooks.Payloads;
 using Apps.GitHub;
-using Apps.GitHub.Api;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -17,41 +16,42 @@ public class BaseWebhookHandler(InvocationContext invocationContext, WebhookRepo
 
     private string RepositoryId { get; set; } = input.RepositoryId;
 
-    public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+    public async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         Dictionary<string, string> values)
     {
-        if (!IsUsingPersonalAccessToken)
-        {
-            var bridge = new BridgeService($"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/webhooks/github");
-            bridge.Subscribe(SubscriptionEvent, RepositoryId, values["payloadUrl"]);
-            return;
-        }
-
-        var hookConfig = new Dictionary<string, string>
-        {
-            { "url", values["payloadUrl"] },
-            { "content_type", "json" },
-            { "secret", "myWebhookSecret" },
-            { "insecure_ssl", "0" }
-        };
-
         try
         {
-            await ClientSdk.Repository.Hooks.Create(long.Parse(input.RepositoryId), new NewRepositoryHook(name: "web", hookConfig) { Events = [ subEvent ], Active = true });
+            if (!IsUsingPersonalAccessToken)
+            {
+                var bridge = new BridgeService($"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/webhooks/github");
+                await bridge.Subscribe(SubscriptionEvent, RepositoryId, values["payloadUrl"]);
+                return;
+            }
+
+            var hookConfig = new Dictionary<string, string>
+            {
+                { "url", values["payloadUrl"] },
+                { "content_type", "json" },
+                { "secret", "myWebhookSecret" },
+                { "insecure_ssl", "0" }
+            };
+
+            await ClientSdk.Repository.Hooks.Create(long.Parse(input.RepositoryId),
+                new NewRepositoryHook(name: "web", hookConfig) { Events = [subEvent], Active = true });
         }
         catch (ApiValidationException ex)
         {
-            throw new PluginApplicationException(ex.ApiError?.Message);           
+            throw new PluginApplicationException(ex.ApiError?.Message);
         }
     }
 
-    public async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders, 
+    public async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         Dictionary<string, string> values)
     {
         if (!IsUsingPersonalAccessToken)
         {
             var bridge = new BridgeService($"{InvocationContext.UriInfo.BridgeServiceUrl.ToString().TrimEnd('/')}/webhooks/github");
-            bridge.Unsubscribe(SubscriptionEvent, RepositoryId, values["payloadUrl"]);
+            await bridge.Unsubscribe(SubscriptionEvent, RepositoryId, values["payloadUrl"]);
             return;
         }
 
@@ -61,7 +61,7 @@ public class BaseWebhookHandler(InvocationContext invocationContext, WebhookRepo
         if (thisHook is not null)
         {
             await ClientSdk.Repository.Hooks.Delete(long.Parse(input.RepositoryId), thisHook.Id);
-        }        
+        }
     }
 
     public async Task<IReadOnlyList<RepositoryHook>> GetAllHooks()

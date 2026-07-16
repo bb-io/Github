@@ -13,11 +13,13 @@ public class PullRequestWebhooks
     private const string PingEventName = "ping";
 
     [Webhook("On pull request action", typeof(PullRequestOpenHandler), Description = "Occurs when there is activity on a pull request")]
-    public async Task<WebhookResponse<PullRequestPayloadFlat>> PullRequestOpenedHandler(WebhookRequest webhookRequest)
+    public Task<WebhookResponse<PullRequestPayloadFlat>> PullRequestOpenedHandler(
+        WebhookRequest webhookRequest,
+        [WebhookParameter] PullRequestActionInput actionInput)
     {
         if (IsPingEvent(webhookRequest))
         {
-            return GeneratePreflight<PullRequestPayloadFlat>();
+            return Task.FromResult(GeneratePreflight<PullRequestPayloadFlat>());
         }
 
         var data = JsonConvert.DeserializeObject<PullRequestPayload>(webhookRequest.Body.ToString());
@@ -26,11 +28,21 @@ public class PullRequestWebhooks
             throw new InvalidCastException(nameof(webhookRequest.Body));
         }
 
-        return new()
+        var selectedActions = actionInput.Action?
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (selectedActions?.Any() == true
+            && !selectedActions.Contains(data.Action))
+        {
+            return Task.FromResult(GeneratePreflight<PullRequestPayloadFlat>());
+        }
+
+        return Task.FromResult(new WebhookResponse<PullRequestPayloadFlat>
         {
             HttpResponseMessage = null,
             Result = new(data)
-        };
+        });
     }
 
     private static bool IsPingEvent(WebhookRequest webhookRequest)

@@ -2,7 +2,7 @@ using Apps.Github.Dtos;
 
 namespace Apps.Github.Models.PullRequest.Responses;
 
-public class ListPullRequestCommitsResponse
+public class SearchPullRequestCommitsResponse
 {
     public IEnumerable<PullRequestCommitDto> Commits { get; set; } = [];
 }

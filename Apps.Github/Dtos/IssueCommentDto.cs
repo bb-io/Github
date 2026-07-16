@@ -17,8 +17,8 @@ public class IssueCommentDto(IssueCommentPayload source)
     public string UserLogin { get; set; } = source.User?.Login ?? string.Empty;
 
     [Display("Created at")]
-    public DateTimeOffset? CreatedAt { get; set; } = source.CreatedAt;
+    public DateTime? CreatedAt { get; set; } = source.CreatedAt?.UtcDateTime;
 
     [Display("Updated at")]
-    public DateTimeOffset? UpdatedAt { get; set; } = source.UpdatedAt;
+    public DateTime? UpdatedAt { get; set; } = source.UpdatedAt?.UtcDateTime;
 }

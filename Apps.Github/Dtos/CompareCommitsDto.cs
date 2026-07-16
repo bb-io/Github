@@ -1,6 +1,7 @@
 using Apps.Github.Models.PullRequest.Payloads;
 using Apps.GitHub.Dtos;
 using Blackbird.Applications.Sdk.Common;
+using Newtonsoft.Json;
 
 namespace Apps.Github.Dtos;
 
@@ -29,4 +30,7 @@ public class CompareCommitsDto(CompareCommitsPayload source)
     public IEnumerable<CompareCommitDto> Commits { get; set; } = (source.Commits ?? []).Select(x => new CompareCommitDto(x)).ToList();
 
     public IEnumerable<PullRequestFileDto> Files { get; set; } = (source.Files ?? []).Select(x => new PullRequestFileDto(x)).ToList();
+
+    [Display("Files JSON")]
+    public string FilesJson { get; set; } = JsonConvert.SerializeObject((source.Files ?? []).Select(x => new PullRequestFileDto(x)).ToList());
 }
