@@ -104,6 +104,12 @@ In order to respond to events happening in Github, you need to also install our 
 - **Get user**
 - **Get user by username**
 
+### Workflows
+
+- **Trigger a workflow**
+- **Get workflow run** returns the workflow run status and conclusion.
+- **Get failed jobs** returns failed, timed out, and cancelled jobs from the latest run attempt, including failed steps, annotations, and job logs as files.
+
 ### Utility
 
 - **Is file in folder**
@@ -121,6 +127,10 @@ In order to respond to events happening in Github, you need to also install our 
 - **On files modified** is triggered when new commits modify files. It returns paths to all modified files.
 - **On files added or modified** is triggered when new commits add new files or modify files. It returns paths to all these files.
 - **On files removed** is triggered when new commits remove files. It returns paths to all deleted files.
+
+### Workflows
+
+- **On workflow run completed** is triggered when a specified workflow run reaches completed status and returns its conclusion.
 
 For the file specific events, a 'Folder pattern' parameter can be specified in order to narrow down the event to only files in specific folders or files that have certain extensions. Use the forward slash '/' to represent directory separator. Use '\*' to represent wildcards in file and directory names. Use '\*\*' to represent arbitrary directory depth.
 
