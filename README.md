@@ -98,7 +98,7 @@ In order to respond to events happening in Github, you need to also install our 
 
 - **Trigger a workflow**
 - **Get workflow run** returns the workflow run status and conclusion.
-- **Get failed jobs** returns failed, timed out, and cancelled jobs from the latest run attempt, including failed steps, annotations, an error summary, and job logs as files.
+- **Get failed jobs** returns failed, timed out, and cancelled jobs from the latest run attempt, including failed steps, annotations, and job logs as files.
 
 ### Utility
 

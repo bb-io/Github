@@ -40,9 +40,6 @@ public class FailedJobDto
 
     public FileReference? Logs { get; set; }
 
-    [Display("Error summary")]
-    public string? ErrorSummary { get; set; }
-
     [Display("Log retrieval error")]
     public string? LogRetrievalError { get; set; }
 }

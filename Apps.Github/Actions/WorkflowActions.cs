@@ -1,14 +1,11 @@
 using Apps.Github.Models.Respository.Requests;
 using Apps.GitHub.Models.Workflow;
+using Apps.GitHub.Services;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Exceptions;
-using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using RestSharp;
-using System.Net.Mime;
-using System.Text;
 
 namespace Apps.GitHub.Actions;
 
@@ -53,14 +50,18 @@ public class WorkflowActions(InvocationContext invocationContext, IFileManagemen
     {
         var workflowRunId = ParseWorkflowRunId(input.WorkflowRunId);
         var repository = await GetRepositoryAsync(repositoryRequest.RepositoryId);
-        var jobs = await GetWorkflowJobsAsync(repository.Owner.Login, repository.Name, workflowRunId);
+        var workflowJobsService = new WorkflowJobsService(ClientRest, fileManagementClient, InvocationContext);
+        var jobs = await workflowJobsService.GetWorkflowJobsAsync(
+            repository.Owner.Login, repository.Name, workflowRunId);
         var failedJobs = new List<FailedJobDto>();
 
         foreach (var job in jobs.Where(job => IsFailedConclusion(job.Conclusion)))
         {
             var checkRunId = GetCheckRunId(job);
-            var annotations = await GetCheckRunAnnotationsAsync(repository.Owner.Login, repository.Name, checkRunId);
-            var logResult = await DownloadJobLogAsync(repository.Owner.Login, repository.Name, job, annotations);
+            var annotations = await workflowJobsService.GetCheckRunAnnotationsAsync(
+                repository.Owner.Login, repository.Name, checkRunId);
+            var logResult = await workflowJobsService.DownloadJobLogAsync(
+                repository.Owner.Login, repository.Name, job);
 
             failedJobs.Add(new FailedJobDto
             {
@@ -78,7 +79,6 @@ public class WorkflowActions(InvocationContext invocationContext, IFileManagemen
                     .ToList(),
                 Annotations = annotations.Select(MapAnnotation).ToList(),
                 Logs = logResult.Logs,
-                ErrorSummary = logResult.ErrorSummary,
                 LogRetrievalError = logResult.RetrievalError
             });
         }
@@ -88,88 +88,6 @@ public class WorkflowActions(InvocationContext invocationContext, IFileManagemen
             WorkflowRunId = workflowRunId,
             FailedJobs = failedJobs
         };
-    }
-
-    private async Task<List<WorkflowJobApiResponse>> GetWorkflowJobsAsync(
-        string owner, string repository, long workflowRunId)
-    {
-        const int pageSize = 100;
-        var jobs = new List<WorkflowJobApiResponse>();
-
-        for (var page = 1; ; page++)
-        {
-            var request = new RestRequest(
-                    $"/{owner}/{repository}/actions/runs/{workflowRunId}/jobs", Method.Get)
-                .AddQueryParameter("filter", "latest")
-                .AddQueryParameter("per_page", pageSize)
-                .AddQueryParameter("page", page);
-
-            var response = await ClientRest.ExecuteWithErrorHandling<WorkflowJobsApiResponse>(request);
-            jobs.AddRange(response.Jobs);
-
-            if (response.Jobs.Count < pageSize || jobs.Count >= response.TotalCount)
-                return jobs;
-        }
-    }
-
-    private async Task<List<CheckRunAnnotationApiResponse>> GetCheckRunAnnotationsAsync(
-        string owner, string repository, long checkRunId)
-    {
-        const int pageSize = 100;
-        var annotations = new List<CheckRunAnnotationApiResponse>();
-
-        for (var page = 1; ; page++)
-        {
-            var request = new RestRequest(
-                    $"/{owner}/{repository}/check-runs/{checkRunId}/annotations", Method.Get)
-                .AddQueryParameter("per_page", pageSize)
-                .AddQueryParameter("page", page);
-
-            var response = await ClientRest.ExecuteWithErrorHandling<List<CheckRunAnnotationApiResponse>>(request);
-            annotations.AddRange(response);
-
-            if (response.Count < pageSize)
-                return annotations;
-        }
-    }
-
-    private async Task<JobLogResult> DownloadJobLogAsync(
-        string owner,
-        string repository,
-        WorkflowJobApiResponse job,
-        IEnumerable<CheckRunAnnotationApiResponse> annotations)
-    {
-        try
-        {
-            var request = new RestRequest($"/{owner}/{repository}/actions/jobs/{job.Id}/logs", Method.Get);
-            var response = await ClientRest.ExecuteAsync(request);
-            if (!response.IsSuccessful)
-            {
-                return new JobLogResult(null, CreateAnnotationSummary(annotations),
-                    $"GitHub returned HTTP {(int)response.StatusCode} while retrieving the job log.");
-            }
-
-            var logBytes = response.RawBytes;
-            if (logBytes is null)
-            {
-                return new JobLogResult(null, CreateAnnotationSummary(annotations),
-                    "GitHub returned an empty response while retrieving the job log.");
-            }
-
-            var logText = Encoding.UTF8.GetString(logBytes);
-            await using var logStream = new MemoryStream(logBytes, writable: false);
-            var logs = await fileManagementClient.UploadAsync(logStream, MediaTypeNames.Text.Plain,
-                $"workflow-job-{job.Id}.log.txt");
-
-            return new JobLogResult(logs, CreateErrorSummary(logText, annotations), null);
-        }
-        catch (Exception exception)
-        {
-            InvocationContext.Logger?.LogWarning(
-                $"Could not retrieve logs for workflow job {job.Id}: {exception.Message}", []);
-            return new JobLogResult(null, CreateAnnotationSummary(annotations),
-                "The job log could not be retrieved from GitHub.");
-        }
     }
 
     internal static bool IsFailedConclusion(string? conclusion) =>
@@ -215,45 +133,4 @@ public class WorkflowActions(InvocationContext invocationContext, IFileManagemen
         BlobUrl = annotation.BlobHref
     };
 
-    internal static string? CreateErrorSummary(
-        string log,
-        IEnumerable<CheckRunAnnotationApiResponse> annotations)
-    {
-        const int maxSummaryLines = 20;
-        var errorLines = log.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-            .Where(line => line.Contains("##[error]", StringComparison.OrdinalIgnoreCase))
-            .Select(line => line[(line.IndexOf("##[error]", StringComparison.OrdinalIgnoreCase) + "##[error]".Length)..].Trim())
-            .Where(line => !string.IsNullOrWhiteSpace(line))
-            .Distinct(StringComparer.Ordinal)
-            .Take(maxSummaryLines)
-            .ToList();
-
-        var summary = errorLines.Count > 0
-            ? string.Join(Environment.NewLine, errorLines)
-            : CreateAnnotationSummary(annotations);
-
-        return TruncateSummary(summary);
-    }
-
-    private static string? CreateAnnotationSummary(IEnumerable<CheckRunAnnotationApiResponse> annotations)
-    {
-        const int maxSummaryLines = 20;
-        var messages = annotations
-            .Where(annotation => string.Equals(annotation.AnnotationLevel, "failure", StringComparison.OrdinalIgnoreCase))
-            .Select(annotation => annotation.Message)
-            .Where(message => !string.IsNullOrWhiteSpace(message))
-            .Distinct(StringComparer.Ordinal)
-            .Take(maxSummaryLines);
-
-        var summary = string.Join(Environment.NewLine, messages);
-        return TruncateSummary(summary.Length > 0 ? summary : null);
-    }
-
-    private static string? TruncateSummary(string? summary)
-    {
-        const int maxSummaryLength = 4000;
-        return summary?.Length > maxSummaryLength ? summary[..maxSummaryLength] + "..." : summary;
-    }
-
-    private sealed record JobLogResult(FileReference? Logs, string? ErrorSummary, string? RetrievalError);
 }
