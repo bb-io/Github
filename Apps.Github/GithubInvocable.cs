@@ -1,4 +1,5 @@
 using Apps.GitHub.Api;
+using Apps.GitHub.Dtos;
 using Apps.GitHub.Models.Workflow;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -90,7 +91,14 @@ public class GithubInvocable : BaseInvocable
 
         request.AddJsonBody(body);
 
-        return await ClientRest.ExecuteWithErrorHandling<WorkflowDispatchApiResponse>(request);
+        try
+        {
+            return await ClientRest.ExecuteWithErrorHandling<WorkflowDispatchApiResponse>(request);
+        }
+        catch (GithubErrorException error)
+        {
+            throw WorkflowDispatchErrorMapper.Map(error);
+        }
     }
 
     protected static long ParseWorkflowRunId(string workflowRunId)
